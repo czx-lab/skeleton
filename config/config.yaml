@@ -1,0 +1,11 @@
+Application:
+  Name: czx-app
+
+Database:
+  Mysql:
+    ConnMaxLifetime: 1
+    MaxIdleConn: 2
+    MaxOpenConn: 2
+    ConnMaxIdleTime: 12
+    Reade:
+    Write:

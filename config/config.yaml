@@ -1,11 +1,21 @@
 Application:
   Name: czx-app
+  Int: 1
+  Int32: 32
+  Int64: 64
+  Array:
+    - 1
+    - 2
+    - 3
 
 Database:
   Mysql:
+    SlowThreshold: 5
+    LogLevel: 4
     ConnMaxLifetime: 1
     MaxIdleConn: 2
     MaxOpenConn: 2
     ConnMaxIdleTime: 12
     Reade:
-    Write:
+      - "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+    Write: "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"

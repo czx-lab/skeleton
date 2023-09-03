@@ -89,7 +89,7 @@ func defaultConfig(opts *Options) {
 	}
 	if opts.Filename == "" {
 		curPath, _ := os.Getwd()
-		opts.Filename = curPath + "/storage/logs/system.db_log"
+		opts.Filename = curPath + "/storage/logs/system.log"
 	}
 	if opts.MaxAge == 0 {
 		opts.MaxAge = 10

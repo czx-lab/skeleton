@@ -16,7 +16,11 @@ func init() {
 	}); err != nil {
 		log.Fatal(consts.ErrorInitConfig)
 	}
-	if variable.Log, err = logger.New(logger.WithDebug(false), logger.WithEncode("json")); err != nil {
+	if variable.Log, err = logger.New(
+		logger.WithDebug(true),
+		logger.WithEncode("json"),
+		logger.WithFilename(variable.BasePath+"/storage/logs/system.log"),
+	); err != nil {
 		log.Fatal(consts.ErrorInitLogger)
 	}
 	if variable.DB, err = InitMysql(); err != nil {

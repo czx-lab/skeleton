@@ -6,6 +6,7 @@ import (
 	"github.com/czx-lab/skeleton/internal/database/driver"
 	"github.com/czx-lab/skeleton/internal/variable"
 	"gorm.io/gorm"
+	gormLog "gorm.io/gorm/logger"
 	"time"
 )
 
@@ -14,10 +15,25 @@ import (
 func InitMysql() (*gorm.DB, error) {
 	mysqlConfig := variable.Config.Get("Database.Mysql").(map[string]any)
 	mysqlMasterDriver := driver.New(driver.WithMysqlDsn(mysqlConfig["write"].(string)))
+	slowThreshold := time.Duration(mysqlConfig["slowthreshold"].(int))
+	logLevel := gormLog.LogLevel(mysqlConfig["loglevel"].(int))
+	dbLog := db_log.New(
+		db_log.SetInfoStrFormat("[info] %s]"),
+		db_log.SetWarnStrFormat("[warn] %s"),
+		db_log.SetErrStrFormat("[error] %s"),
+		db_log.SetTraceStrFormat("[traceStr] %s [%.2fms] [rows:%v] [sql:%s]"),
+		db_log.SetTracWarnStrFormat("[traceWarn] %s %s [%.2fms] [rows:%v] [sql:%s]"),
+		db_log.SetTracErrStrFormat("[traceErr] %s %s [%.2fms] [rows:%v] [sql:%s]"),
+		db_log.SetConfig(gormLog.Config{
+			SlowThreshold: slowThreshold * time.Second,
+			LogLevel:      logLevel,
+		}),
+		db_log.SetLogger(variable.Log),
+	)
 	dbClass, err := database.New(
 		mysqlMasterDriver,
 		&gorm.Config{
-			Logger: db_log.New(db_log.SetLogger(variable.Log)),
+			Logger: dbLog,
 		},
 		database.WithMaxOpenConn(mysqlConfig["maxopenconn"].(int)),
 		database.WithMaxIdleConn(mysqlConfig["maxidleconn"].(int)),

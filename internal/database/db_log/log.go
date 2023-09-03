@@ -30,7 +30,14 @@ type logOutPut struct {
 }
 
 func New(options ...Options) *Log {
-	logClass := &Log{}
+	logClass := &Log{
+		infoStr:      "%s\n[info] ",
+		warnStr:      "%s\n[warn] ",
+		errStr:       "%s\n[error] ",
+		traceStr:     "%s\n[%.2fms] [rows:%v] %s",
+		traceWarnStr: "%s %s\n[%.2fms] [rows:%v] %s",
+		traceErrStr:  "%s %s\n[%.2fms] [rows:%v] %s",
+	}
 	for _, val := range options {
 		val.apply(logClass)
 	}
@@ -46,22 +53,21 @@ func defaultOption(log *Log) {
 	}
 	if (log.Config == gormLog.Config{}) {
 		log.Config = gormLog.Config{
-			SlowThreshold: time.Second,
+			SlowThreshold: 5 * time.Second,
 			LogLevel:      gormLog.Warn,
 			Colorful:      false,
 		}
 	}
 }
+
 func (l logOutPut) Printf(strFormat string, args ...interface{}) {
 	logRes := fmt.Sprintf(strFormat, args...)
-	logFlag := "gorm 日志:"
-	detailFlag := "详情："
 	if strings.HasPrefix(strFormat, "[info]") || strings.HasPrefix(strFormat, "[traceStr]") {
-		l.logger.Info(logFlag, zap.String(detailFlag, logRes))
+		l.logger.Info("gorm-->" + logRes)
 	} else if strings.HasPrefix(strFormat, "[error]") || strings.HasPrefix(strFormat, "[traceErr]") {
-		l.logger.Error(logFlag, zap.String(detailFlag, logRes))
+		l.logger.Error("gorm-->" + logRes)
 	} else if strings.HasPrefix(strFormat, "[warn]") || strings.HasPrefix(strFormat, "[traceWarn]") {
-		l.logger.Warn(logFlag, zap.String(detailFlag, logRes))
+		l.logger.Warn("gorm-->" + logRes)
 	}
 }
 

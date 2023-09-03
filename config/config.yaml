@@ -19,3 +19,16 @@ Database:
     Reade:
       - "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
     Write: "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+
+Redis:
+  Disabled: false
+  Addr: "192.168.1.4:6379"
+  Pwd: ""
+  Db: 0
+  PoolSize: 20
+  MaxIdleConn: 30
+  MinIdleConn: 10
+  # 单位（秒）
+  MaxLifeTime: 60
+  # 单位（分）
+  MaxIdleTime: 30

@@ -4,9 +4,11 @@ import (
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/config/driver"
 	"github.com/czx-lab/skeleton/internal/logger"
+	"github.com/czx-lab/skeleton/internal/redis"
 	"github.com/czx-lab/skeleton/internal/variable"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
 	"log"
+	"time"
 )
 
 func init() {
@@ -25,5 +27,18 @@ func init() {
 	}
 	if variable.DB, err = InitMysql(); err != nil {
 		log.Fatal(consts.ErrorInitDb)
+	}
+	redisConfig := variable.Config.Get("Redis").(map[string]any)
+	if redisConfig != nil && !redisConfig["disabled"].(bool) {
+		variable.Redis = redis.New(
+			redis.WithAddr(redisConfig["addr"].(string)),
+			redis.WithPwd(redisConfig["pwd"].(string)),
+			redis.WithDb(redisConfig["db"].(int)),
+			redis.WithPoolSize(redisConfig["poolsize"].(int)),
+			redis.WithMaxIdleConn(redisConfig["maxidleconn"].(int)),
+			redis.WithMinIdleConn(redisConfig["minidleconn"].(int)),
+			redis.WithMaxLifetime(time.Duration(redisConfig["maxlifetime"].(int))),
+			redis.WithMaxIdleTime(time.Duration(redisConfig["maxidletime"].(int))),
+		)
 	}
 }

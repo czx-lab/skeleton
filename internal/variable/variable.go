@@ -3,6 +3,7 @@ package variable
 import (
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"log"
@@ -15,6 +16,7 @@ var (
 	Log      *zap.Logger
 	Config   *config.Config
 	DB       *gorm.DB
+	Redis    *redis.Client
 )
 
 func init() {

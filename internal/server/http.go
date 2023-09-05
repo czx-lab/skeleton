@@ -55,9 +55,20 @@ func (h *Http) setServerEngine() (engine *gin.Engine) {
 		gin.SetMode(gin.ReleaseMode)
 		gin.DefaultWriter = io.Discard
 		engine = gin.New()
-		engine.Use(gin.Logger(), middleware.CustomRecovery(h.logger))
+		engine.Use(gin.Logger())
+		h.SetMiddleware()
 	}
 	return
+}
+
+func (h *Http) SetMiddleware(middlewares ...middleware.Interface) {
+	if len(middlewares) == 0 {
+		h.engine.Use(middleware.New(h.logger).Handle())
+	} else {
+		for _, middleware := range middlewares {
+			h.engine.Use(middleware.Handle())
+		}
+	}
 }
 
 func (h *Http) defaultOption() {

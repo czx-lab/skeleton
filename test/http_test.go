@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/czx-lab/skeleton/internal/server"
+	"github.com/gin-gonic/gin"
 )
 
 func TestHttp(t *testing.T) {
@@ -12,7 +13,7 @@ func TestHttp(t *testing.T) {
 			t.Log(err)
 		}
 	}()
-	http := server.New(server.WithAddress(":8888"))
+	http := server.New(server.WithPort(":8888"), server.WithMode(gin.DebugMode))
 	if err := http.Run(); err != nil {
 		t.Log(err)
 	}

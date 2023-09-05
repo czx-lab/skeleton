@@ -1,7 +1,15 @@
 package server
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/czx-lab/skeleton/internal/server/middleware"
 	"github.com/gin-gonic/gin"
@@ -9,10 +17,10 @@ import (
 )
 
 type Http struct {
-	engine  *gin.Engine
-	logger  *zap.Logger
-	mode    string
-	address []string
+	engine *gin.Engine
+	logger *zap.Logger
+	mode   string
+	port   string
 }
 
 type Option interface {
@@ -59,7 +67,46 @@ func (h *Http) defaultOption() {
 }
 
 func (h *Http) Run() error {
-	return h.engine.Run(h.address...)
+	srv := http.Server{
+		Addr:    h.port,
+		Handler: h.engine,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if h.logger != nil {
+				h.logger.Fatal(fmt.Sprintf("listen: %s\n", err.Error()))
+			} else {
+				log.Fatalf("listen: %s\n", err)
+			}
+		}
+	}()
+	h.ListenSignal(&srv)
+	return nil
+}
+
+func (h *Http) ListenSignal(srv *http.Server) {
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	if h.logger != nil {
+		h.logger.Info("Shutdown Server!")
+	} else {
+		log.Println("Shutdown Server!")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		if h.logger != nil {
+			h.logger.Fatal("Server Shutdown:" + err.Error())
+		} else {
+			log.Fatal("Server Shutdown:", err)
+		}
+	}
+	if h.logger != nil {
+		h.logger.Info("Server exiting!")
+	} else {
+		log.Println("Server exiting!")
+	}
 }
 
 func WithMode(mode string) Option {
@@ -74,8 +121,8 @@ func WithLogger(logger *zap.Logger) Option {
 	})
 }
 
-func WithAddress(address ...string) Option {
+func WithPort(port string) Option {
 	return OptionFunc(func(http *Http) {
-		http.address = address
+		http.port = port
 	})
 }

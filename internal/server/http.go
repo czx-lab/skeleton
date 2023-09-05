@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/czx-lab/skeleton/internal/server/middleware"
+	appRouter "github.com/czx-lab/skeleton/internal/server/router"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -19,6 +20,7 @@ import (
 type Http struct {
 	engine *gin.Engine
 	logger *zap.Logger
+	router *appRouter.Router
 	mode   string
 	port   string
 }
@@ -40,7 +42,12 @@ func New(opts ...Option) *Http {
 	}
 	httpClass.defaultOption()
 	httpClass.engine = httpClass.setServerEngine()
+	httpClass.router = appRouter.New(httpClass.engine)
 	return httpClass
+}
+
+func (h *Http) SetRouters(routers appRouter.Interface) {
+	h.router.AddRouter(routers)
 }
 
 func (h *Http) GetServerEngine() *gin.Engine {
@@ -97,7 +104,7 @@ func (h *Http) Run() error {
 
 func (h *Http) ListenSignal(srv *http.Server) {
 	quit := make(chan os.Signal)
-	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt, os.Kill, syscall.SIGTERM)
 	<-quit
 	if h.logger != nil {
 		h.logger.Info("Shutdown Server!")

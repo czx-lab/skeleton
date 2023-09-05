@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -72,8 +73,8 @@ func (h *Http) SetMiddleware(middlewares ...middleware.Interface) {
 	if len(middlewares) == 0 {
 		h.engine.Use(middleware.New(h.logger).Handle())
 	} else {
-		for _, middleware := range middlewares {
-			h.engine.Use(middleware.Handle())
+		for _, mid := range middlewares {
+			h.engine.Use(mid.Handle())
 		}
 	}
 }
@@ -90,7 +91,7 @@ func (h *Http) Run() error {
 		Handler: h.engine,
 	}
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
 			if h.logger != nil {
 				h.logger.Fatal(fmt.Sprintf("listen: %s\n", err.Error()))
 			} else {

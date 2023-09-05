@@ -1,0 +1,33 @@
+package middleware
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
+
+func CustomRecovery(log *zap.Logger) gin.HandlerFunc {
+	DefaultErrorWriter := &PanicException{
+		logger: log,
+	}
+	return gin.RecoveryWithWriter(DefaultErrorWriter, func(c *gin.Context, err any) {
+		// TODO:: 异常响应
+		fmt.Println(fmt.Sprintf("%s", err))
+	})
+}
+
+// PanicException  panic等异常记录
+type PanicException struct {
+	logger *zap.Logger
+}
+
+func (p *PanicException) Write(b []byte) (n int, err error) {
+	errStr := string(b)
+	err = errors.New(errStr)
+	if p.logger != nil {
+		p.logger.Error("Internal Server Error.", zap.String("strace", errStr))
+	}
+	return len(errStr), err
+}

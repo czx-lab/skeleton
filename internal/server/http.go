@@ -26,6 +26,11 @@ type Http struct {
 	port   string
 }
 
+type HttpServer interface {
+	GetServerEngine() *gin.Engine
+	SetMiddleware(middlewares ...middleware.Interface)
+}
+
 type Option interface {
 	apply(http *Http)
 }

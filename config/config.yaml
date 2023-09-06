@@ -36,3 +36,6 @@ Redis:
   MaxLifeTime: 60
   # 单位（分）
   MaxIdleTime: 30
+
+Crontab:
+  Enable: true

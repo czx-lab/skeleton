@@ -1,14 +1,16 @@
 package bootstrap
 
 import (
+	"log"
+	"time"
+
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/config/driver"
+	"github.com/czx-lab/skeleton/internal/crontab"
 	"github.com/czx-lab/skeleton/internal/logger"
 	"github.com/czx-lab/skeleton/internal/redis"
 	"github.com/czx-lab/skeleton/internal/variable"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
-	"log"
-	"time"
 )
 
 func init() {
@@ -40,5 +42,8 @@ func init() {
 			redis.WithMaxLifetime(time.Duration(redisConfig["maxlifetime"].(int))),
 			redis.WithMaxIdleTime(time.Duration(redisConfig["maxidletime"].(int))),
 		)
+	}
+	if variable.Config.GetBool("Crontab.Enable") {
+		variable.Crontab = crontab.New()
 	}
 }

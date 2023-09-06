@@ -1,14 +1,16 @@
 package variable
 
 import (
+	"log"
+	"os"
+	"strings"
+
 	"github.com/czx-lab/skeleton/internal/config"
+	"github.com/czx-lab/skeleton/internal/crontab"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"log"
-	"os"
-	"strings"
 )
 
 var (
@@ -17,6 +19,7 @@ var (
 	Config   *config.Config
 	DB       *gorm.DB
 	Redis    *redis.Client
+	Crontab  *crontab.Crontab
 )
 
 func init() {

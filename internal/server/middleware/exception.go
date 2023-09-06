@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -23,8 +24,9 @@ func (app *AppException) Handle() gin.HandlerFunc {
 		logger: app.log,
 	}
 	return gin.RecoveryWithWriter(DefaultErrorWriter, func(c *gin.Context, err any) {
-		// TODO:: 异常响应
-		fmt.Println(fmt.Sprintf("%s", err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": fmt.Sprintf("%s", err),
+		})
 	})
 }
 

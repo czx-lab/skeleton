@@ -2,8 +2,9 @@ package command
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 type FooCommand struct {

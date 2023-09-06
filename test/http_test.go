@@ -15,7 +15,7 @@ func TestHttp(t *testing.T) {
 		}
 	}()
 	http := server.New(server.WithPort(":8888"), server.WithMode(gin.DebugMode))
-	http.SetRouters(router.New())
+	http.SetRouters(router.New(http))
 	if err := http.Run(); err != nil {
 		t.Log(err)
 	}

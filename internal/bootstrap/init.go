@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/czx-lab/skeleton/app/task"
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/config/driver"
 	"github.com/czx-lab/skeleton/internal/crontab"
@@ -45,5 +46,7 @@ func init() {
 	}
 	if variable.Config.GetBool("Crontab.Enable") {
 		variable.Crontab = crontab.New()
+		variable.Crontab.AddFunc(task.New().Tasks()...)
+		variable.Crontab.Start()
 	}
 }

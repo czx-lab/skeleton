@@ -9,6 +9,12 @@ type Interface interface {
 	Execute() func()
 }
 
+type TaskInterface interface {
+	Tasks() Tasks
+}
+
+type Tasks []Interface
+
 type Crontab struct {
 	instance *cron.Cron
 }

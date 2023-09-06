@@ -1,9 +1,16 @@
 package task
 
-import "github.com/czx-lab/skeleton/internal/variable"
+import (
+	"github.com/czx-lab/skeleton/internal/crontab"
+)
 
-func init() {
-	if variable.Crontab != nil {
-		variable.Crontab.AddFunc(&DemoTask{})
-	}
+type Task struct {
+}
+
+func New() crontab.TaskInterface {
+	return &Task{}
+}
+
+func (*Task) Tasks() crontab.Tasks {
+	return []crontab.Interface{&DemoTask{}}
 }

@@ -7,6 +7,8 @@ import (
 type Task struct {
 }
 
+var _ crontab.TaskInterface = (*Task)(nil)
+
 func New() crontab.TaskInterface {
 	return &Task{}
 }

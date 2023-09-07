@@ -27,16 +27,31 @@ type ConsumerInterface interface {
 type RocketMQ struct {
 	producerProvider rocketmq.Producer
 	consumerProvider rocketmq.PushConsumer
-	conf             Config
+	conf             *Config
 }
 
 type Config struct {
-	NameServers primitive.NamesrvAddr
-	GroupId     string
-	Retries     int
+	NameServers     primitive.NamesrvAddr
+	GroupId         string
+	ConsumptionSize int
+	Retries         int
 }
 
-func New(conf Config) (*RocketMQ, error) {
+type Option interface {
+	apply(*Config)
+}
+
+type OptionFunc func(conf *Config)
+
+func (f OptionFunc) apply(conf *Config) {
+	f(conf)
+}
+
+func New(opts ...Option) (*RocketMQ, error) {
+	conf := &Config{}
+	for _, opt := range opts {
+		opt.apply(conf)
+	}
 	mqClass := &RocketMQ{
 		conf: conf,
 	}
@@ -106,4 +121,28 @@ func (r *RocketMQ) Shutdown() (err error) {
 		return err
 	}
 	return r.consumerProvider.Shutdown()
+}
+
+func WithNameServers(servers primitive.NamesrvAddr) Option {
+	return OptionFunc(func(conf *Config) {
+		conf.NameServers = servers
+	})
+}
+
+func WithGroupId(GId string) Option {
+	return OptionFunc(func(conf *Config) {
+		conf.GroupId = GId
+	})
+}
+
+func WithRetries(retries int) Option {
+	return OptionFunc(func(conf *Config) {
+		conf.Retries = retries
+	})
+}
+
+func WithConsumptionSize(size int) Option {
+	return OptionFunc(func(conf *Config) {
+		conf.ConsumptionSize = size
+	})
 }

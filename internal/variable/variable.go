@@ -7,6 +7,7 @@ import (
 
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/crontab"
+	"github.com/czx-lab/skeleton/internal/mq"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -20,6 +21,7 @@ var (
 	DB       *gorm.DB
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
+	MQ       *mq.RocketMQ
 )
 
 func init() {

@@ -9,6 +9,7 @@ import (
 	"github.com/czx-lab/skeleton/internal/config/driver"
 	"github.com/czx-lab/skeleton/internal/crontab"
 	"github.com/czx-lab/skeleton/internal/logger"
+	"github.com/czx-lab/skeleton/internal/mq"
 	"github.com/czx-lab/skeleton/internal/redis"
 	"github.com/czx-lab/skeleton/internal/variable"
 	"github.com/czx-lab/skeleton/internal/variable/consts"
@@ -48,5 +49,15 @@ func init() {
 		variable.Crontab = crontab.New()
 		variable.Crontab.AddFunc(task.New().Tasks()...)
 		variable.Crontab.Start()
+	}
+	if variable.Config.GetBool("MQ.Enable") {
+		if variable.MQ, err = mq.New(
+			mq.WithNameServers(variable.Config.GetStringSlice("MQ.Servers")),
+			mq.WithGroupId(variable.Config.GetString("MQ.GroupId")),
+			mq.WithConsumptionSize(variable.Config.GetInt("MQ.ConsumptionSize")),
+			mq.WithRetries(variable.Config.GetInt("MQ.Retries")),
+		); err != nil {
+			log.Fatal(consts.ErrorInitMQ)
+		}
 	}
 }

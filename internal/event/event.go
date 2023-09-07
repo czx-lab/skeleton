@@ -26,7 +26,7 @@ func New() *Event {
 
 func (e *Event) Register(event Interface) error {
 	if _, ok := smap.Load(event.Listen().EventName()); ok {
-		return errors.New("Event already exists!")
+		return errors.New("event registered")
 	}
 	smap.Store(event.Listen().EventName(), event)
 	return nil
@@ -35,7 +35,7 @@ func (e *Event) Register(event Interface) error {
 func (e *Event) Dispatch(event EventInterface) (any, error) {
 	eventClass, ok := smap.Load(event.EventName())
 	if !ok {
-		return nil, errors.New("event not registered!")
+		return nil, errors.New("event not registered")
 	}
 	return e.exec(eventClass.(Interface), event)
 }

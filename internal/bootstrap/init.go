@@ -34,6 +34,9 @@ func init() {
 	if variable.DB, err = InitMysql(); err != nil {
 		log.Fatal(consts.ErrorInitDb)
 	}
+	if err = InitMongo(); err != nil {
+		log.Fatal(consts.ErrorInitMongoDb)
+	}
 	redisConfig := variable.Config.Get("Redis").(map[string]any)
 	if redisConfig != nil && !redisConfig["disabled"].(bool) {
 		variable.Redis = redis.New(

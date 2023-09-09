@@ -2,6 +2,7 @@ package variable
 
 import (
 	"github.com/czx-lab/skeleton/internal/event"
+	"github.com/czx-lab/skeleton/internal/mongo"
 	"log"
 	"os"
 	"strings"
@@ -20,6 +21,7 @@ var (
 	Log      *zap.Logger
 	Config   *config.Config
 	DB       *gorm.DB
+	MongoDB  *mongo.MongoDB
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
 	MQ       *mq.RocketMQ

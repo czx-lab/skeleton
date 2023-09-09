@@ -23,6 +23,12 @@ Database:
     Reade:
       - "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
     Write: "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+  Mongo:
+    Enable: false
+    Uri:
+    MinPoolSize: 10
+    MaxPoolSize: 20
+
 
 Redis:
   Disabled: false

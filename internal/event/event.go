@@ -5,6 +5,10 @@ import (
 	"sync"
 )
 
+type InitInterface interface {
+	Init() error
+}
+
 type EventInterface interface {
 	EventName() string
 	GetData() any

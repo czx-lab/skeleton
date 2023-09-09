@@ -6,4 +6,5 @@ const (
 	ErrorInitLogger string = "初始化日志实例失败"
 	ErrorInitDb     string = "初始化数据库实例失败"
 	ErrorInitMQ     string = "初始化消息队列实例失败"
+	ErrorInitEvent  string = "事件注册执行失败"
 )

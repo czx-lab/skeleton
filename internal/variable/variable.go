@@ -1,6 +1,7 @@
 package variable
 
 import (
+	"github.com/czx-lab/skeleton/internal/event"
 	"log"
 	"os"
 	"strings"
@@ -22,6 +23,7 @@ var (
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
 	MQ       *mq.RocketMQ
+	Event    *event.Event
 )
 
 func init() {

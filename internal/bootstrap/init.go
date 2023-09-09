@@ -1,9 +1,11 @@
 package bootstrap
 
 import (
+	AppEvent "github.com/czx-lab/skeleton/internal/event"
 	"log"
 	"time"
 
+	"github.com/czx-lab/skeleton/app/event"
 	"github.com/czx-lab/skeleton/app/task"
 	"github.com/czx-lab/skeleton/internal/config"
 	"github.com/czx-lab/skeleton/internal/config/driver"
@@ -59,5 +61,9 @@ func init() {
 		); err != nil {
 			log.Fatal(consts.ErrorInitMQ)
 		}
+	}
+	variable.Event = AppEvent.New()
+	if err = (&event.Event{}).Init(); err != nil {
+		log.Fatal(consts.ErrorInitEvent)
 	}
 }

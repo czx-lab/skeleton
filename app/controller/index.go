@@ -1,13 +1,22 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/czx-lab/skeleton/app/request"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Index struct {
+	base
 }
 
-func (*Index) Hello(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"data": "Hello World"})
+func (i *Index) Hello(ctx *gin.Context) {
+	var param request.Foo
+	if err := i.base.Validate(ctx, &param); err == nil {
+		fmt.Println(param)
+		ctx.JSON(http.StatusOK, gin.H{"data": "Hello World"})
+	} else {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err})
+	}
 }

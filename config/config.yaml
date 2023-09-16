@@ -12,6 +12,14 @@ HttpServer:
   Port: ":8888"
   Mode: "debug"
 
+Websocket:
+  WriteReadBufferSize: 2048
+  HeartbeatFailMaxTimes: 4
+  PingPeriod: 20
+  ReadDeadline: 100
+  WriteDeadline: 35
+  PingMsg: "ping"
+
 Database:
   Mysql:
     SlowThreshold: 5

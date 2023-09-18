@@ -36,7 +36,7 @@ CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags '-s'
 │  │  ├─listen ---> 事件监听执行脚本目录
 │  │  └─event.go ---> 事件注册代码
 │  │       
-│  ├─middleware
+│  ├─middleware ---> 中间件代码目录
 │  ├─request ---> 请求参数校验代码目录
 │  │   └─request.go ---> 参数验证器
 │  └─task ---> 定时任务代码目录
@@ -44,36 +44,13 @@ CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags '-s'
 ├─cmd ---> 项目入口目录
 │  └─cli ---> 项目命令行模式入口目录
 ├─config
-├─internal
-│  ├─bootstrap
-│  ├─command
-│  ├─config
-│  │  └─driver
-│  ├─constants
-│  │  ├─config
-│  │  └─container
-│  ├─container
-│  ├─crontab
-│  ├─database
-│  │  ├─db_log
-│  │  └─driver
-│  ├─event
-│  ├─logger
-│  ├─mongo
-│  │  └─collection
-│  ├─mq
-│  ├─redis
-│  ├─request
-│  ├─server
-│  │  ├─middleware
-│  │  └─router
-│  └─variable
-│      └─consts
-├─pkg
-├─router
-├─storage
+│  └─config.yaml ---> 配置文件 
+├─internal ---> 包含第三方包的封装
+├─router ---> 路由目录
+│  └─router.go
+├─storage ---> 日志、资源存储目录
 │  └─logs
-└─test
+└─test ---> 单元测试目录
 ```
 
 

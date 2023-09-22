@@ -2,11 +2,11 @@ BINARY_NAME=main
 PLATFORM=Windows
 
 ifeq ($(OS), Windows_NT)
-	PLATFORM=Windows
+	PLATFORM=window
 	BINARY_NAME=main.go
 else
 	ifeq ($(shell uname), Darwin)
-		PLATFORM=MacOS
+		PLATFORM=mac
 	else
 		PLATFORM=linux
 	endif

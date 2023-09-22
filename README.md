@@ -1,3 +1,5 @@
+#### 单元测试
+
 ```shell
 go test -v -run=TestConfig ./test
 ```
@@ -76,26 +78,26 @@ server.GET("/foo", func(ctx *gin.Context) {
 package router
 
 import (
-	"net/http"
-	
-	"github.com/czx-lab/skeleton/internal/server"
-	"github.com/gin-gonic/gin"
+    "net/http"
+    
+    "github.com/czx-lab/skeleton/internal/server"
+    "github.com/gin-gonic/gin"
 )
 
 type CustomRouter struct {
-	server server.HttpServer
+    server server.HttpServer
 }
 
 func NewCustom(srv server.HttpServer) *CustomRouter {
-	return &CustomRouter{
-		srv,
-	}
+    return &CustomRouter{
+        srv,
+    }
 }
 
 func (*CustomRouter) Add(srv *gin.Engine) {
-	srv.GET("/custom", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "custom router")
-	})
+    srv.GET("/custom", func(ctx *gin.Context) {
+        ctx.String(http.StatusOK, "custom router")
+    })
 }
 ```
 
@@ -107,6 +109,7 @@ func (*CustomRouter) Add(srv *gin.Engine) {
 
 如果需要定义其他的中间件并加载注册，可以将定义好的中间件通过`server.HttpServer`接口的`SetMiddleware(middlewares ...middleware.Interface)`方法注册加载，
 比如我们实现如下自定义全局中间件`middleware/custom.go`：
+
 ```go
 type Custom struct{}
 
@@ -121,7 +124,190 @@ func (c *Custom) Handle() gin.HandlerFunc {
 
 > 如果是局部中间件，可以直接在具体的路由上注册，参考gin路由中间件的用法
 
+#### 日志
+
+在该骨架中的日志是直接对`go.uber.org/zap`的封装，使用时，直接通过全局变量`variable.Log`访问写入日志，可直接使用zap支持的所有方法。
+
+```go
+package demo
+import "github.com/czx-lab/skeleton/internal/variable"
+func Demo() {
+    variable.Log.Info("info message")
+}
+```
+
+日志文件默认是以`json`格式写入到`storage/logs/system.log`里面
+
+#### 配置
+
+配置项的定义直接在`config/config.yaml`文件中定义，并且配置的读取写入是通过封装`github.com/spf13/viper`实现，在该骨架中，只提供了如下一些获取配置的方法：
+
+```go
+type ConfigInterface interface {
+	Get(key string) any
+	GetString(key string) string
+	GetBool(key string) bool
+	GetInt(key string) int
+	GetInt32(key string) int32
+	GetInt64(key string) int64
+	GetFloat64(key string) float64
+	GetDuration(key string) time.Duration
+	GetStringSlice(key string) []string
+}
+```
+
+需要注意的是，骨架中对配置项的获取做了缓存的处理，第一次加载是在文件中获取，后面每次回去都是在`cache`中获取，目前`cache`默认只支持`memory`，骨架中也支持自定义`cache`的方法，只需要实现`config.CacheInterface`接口就可以，比如需要使用`redis`作为配置缓存，可以通过下面的方式处理:
+
+```go
+type ConfigRedisCache struct {}
+
+var _ config.CacheInterface = (*ConfigRedisCache)(nil)
+
+func (c *ConfigRedisCache) Get(key string) any {
+    return nil
+}
+
+func (c *ConfigRedisCache) Set(key string, value any) bool {
+    return true
+}
+
+func (c *ConfigRedisCache) Has(key string) bool {
+    return true
+}
+
+func (c *ConfigRedisCache) FuzzyDelete(key string) {
+    
+}
+```
+
+然后将`ConfigRedisCache`结构体配置到`config.Options`中，如下所示，修改`internal/bootstrap/init.go`初始化配置的方法：
+
+```go
+variable.Config, err := config.New(driver.New(), config.Options{
+	BasePath: './',
+    Cache: &ConfigRedisCache{}
+})
+```
+
+`config.yaml`基础配置如下：
+
+```yaml
+# http配置
+HttpServer:
+  Port: ":8888"
+  
+  # 服务模式，和gin的gin.SetMode的值是一样的
+  Mode: "debug"
+# socket配置
+Websocket:
+  WriteReadBufferSize: 2048
+  HeartbeatFailMaxTimes: 4
+  PingPeriod: 20
+  ReadDeadline: 100
+  WriteDeadline: 35
+  PingMsg: "ping"
+  
+# 数据库配置
+Database:
+  # 可以查看GORM相关的配置选项
+  Mysql:
+    SlowThreshold: 5
+    LogLevel: 4
+    ConnMaxLifetime: 1
+    MaxIdleConn: 2
+    MaxOpenConn: 2
+    ConnMaxIdleTime: 12
+    Reade:
+      - "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+    Write: "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+  # mongo数据库的基础配置
+  Mongo:
+    Enable: false
+    Uri:
+    MinPoolSize: 10
+    MaxPoolSize: 20
 
 
+Redis:
+  Disabled: false
+  Addr: "192.168.1.4:6379"
+  Pwd: ""
+  Db: 0
+  PoolSize: 20
+  MaxIdleConn: 30
+  MinIdleConn: 10
+  # 单位（秒）
+  MaxLifeTime: 60
+  # 单位（分）
+  MaxIdleTime: 30
 
+# 定时任务
+Crontab:
+  Enable: true
 
+# 消息队列，使用rocketmq
+MQ:
+  Enable: false
+  Servers:
+    - "127.0.0.1:9876"
+  ConsumptionSize: 1
+  Retries: 1
+```
+
+#### 事件机制
+
+- 定义事件实体
+
+  在`app/event/entity`目录下定义一个事件实体，该实体实现了`event.EventInterface`接口：
+
+  ```go
+  package entity
+  
+  type DemoEvent struct {}
+  
+  func (d *DemoEvent) EventName() string {
+      return "demo-event"
+  }
+  
+  func (d *DemoEvent) GetData() any {
+      return "demo param"
+  }
+  ```
+
+  
+
+- 定义事件监听
+
+  在`app/event/listen`目录中定义一个`DemoEventListen`事件监听，并且该`DemoEventListen`结构体必须要实现`event.Interface`接口：
+
+  ```
+  package listen
+  
+  import (
+  	"fmt"
+  	event2 "github.com/czx-lab/skeleton/app/event/entity"
+  	"github.com/czx-lab/skeleton/internal/event"
+  )
+  
+  type DemoEventListen struct {
+  }
+  
+  func (*DemoEventListen) Listen() event.EventInterface {
+  	return &event2.DemoEvent{}
+  }
+  
+  func (*DemoEventListen) Process(data any) (any, error) {
+  	return fmt.Sprintf("%v --> %s", data, "exec DemoEventListen.Process"), nil
+  }
+
+- 最后需要将事件进行注册，在`app/event/event.go`文件中的`Init`方法内执行：
+
+  ```go
+  variable.Event.Register(&listen.DemoEventListen{})
+  ```
+
+- 调用事件执行
+
+  ```go
+  variable.Event.Dispatch(&entity.DemoEvent{})
+  ```

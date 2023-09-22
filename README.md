@@ -20,8 +20,14 @@ go run ./cmd/main.go
 ```shell
 go build ./cmd/main.go
 
-// 静态编译
-CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags '-s'
+// 编译
+make build
+
+// 运行
+make run
+
+// 编译与运行
+make
 
 // 运行项目
 ./main

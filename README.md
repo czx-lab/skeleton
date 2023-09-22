@@ -311,3 +311,137 @@ MQ:
   ```go
   variable.Event.Dispatch(&entity.DemoEvent{})
   ```
+
+#### 验证器
+
+gin框架本身内置了`validator`校验，骨架里面只是对其参数的校验做了统一的校验入口。
+
+通过如下方式获取进行参数的校验，并设置中文错误提示：
+
+```go
+type Param struct {
+    Name  int    `binding:"required" form:"name" query:"name" json:"name"`
+}
+appRequest, err := AppRequest.New("zh")
+if err != nil {
+    return
+}
+var data Param
+errMap := appRequest.Validator(ctx, &data)
+fmt.Println(errMap)
+```
+
+骨架里面已经实现了默认的参数校验，可以在`app/request/request.go`文件中查看。并且在`controller`目录中`base.go`有一个`Validate(ctx *gin.Context, param any)`方法，在其他controller中要进行参数校验的时候，只需要继承`base`结构体，然后调用`Validate`方法。
+
+```go
+package controller
+
+import "github.com/gin-gonic/gin"
+
+type DemoController struct {
+    base
+}
+
+type DemoRequest struct {
+    Id int `binding:"required" form:"id" query:"id" json:"id"`
+}
+
+func (d *DemoController) Index(ctx *gin.Context) {
+    var param DemoRequest
+    if err := d.base.Validate(ctx, &param); err == nil {
+		ctx.JSON(http.StatusOK, gin.H{"data": param})
+	} else {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err})
+	}
+}
+```
+
+> 验证规格参考`github.com/go-playground/validator`官方文档
+
+#### 命令行
+
+基于`github.com/spf13/cobra`封装
+
+- 定义命令
+
+  在`app/command`目录中定义自己的命令，比如自定义一个输出`success ok`的命令
+
+  ```go
+  package command
+  
+  import (
+      "fmt"
+      "github.com/spf13/cobra"
+  )
+  
+  type FooCommand struct {}
+  
+  func (f *FooCommand) Command() *cobra.Command {
+      return &cobra.Command{
+  		Use:   "foo",
+  		Short: "命令使用简介.",
+  		Long: `命令介绍.`,
+  		Run: func(cmd *cobra.Command, args []string) {
+  			str, _ := cmd.Flags().GetString("name")
+               fmt.Printf("success, %s", str)
+  		},
+  	}
+  }
+  
+  func (f *FooCommand) Flags(root *cobra.Command) {
+  	root.PersistentFlags().String("name", "", "命令参数")
+  }
+  ```
+
+- 注册命令
+
+  需要在`cmd/cli/cli.go`中的`main`方法内注册自定义命令。
+
+  
+
+- 执行命令 
+
+  ```go
+  go run cmd/cli/cli.go foo --name ok
+  ```
+
+- 查看命令信息
+
+  ```go
+  go run cmd/cli/cli.go help
+  
+  // 或者
+  go run cmd/cli/cli.go foo --help
+  ```
+  
+#### 定时任务
+
+定时是通过封装`github.com/robfig/cron/v3`实现
+
+- 定义定时任务方法
+
+  在`app/task`目录下定义执行方法，比如每一分钟打印`success`字符
+
+  ```go
+  package task
+  
+  import "fmt"
+  
+  type SuccessTask struct {
+  }
+  
+  // 时间规则
+  func (s *SuccessTask) Rule() string {
+  	return "* * * * *"
+  }
+  
+  func (s *SuccessTask) Execute() func() {
+  	return func() {
+  		fmt.Println("success")
+  	}
+  }
+  ```
+
+- 加载定时任务
+
+  需要在`app/task/task.go`文件中的`Tasks`方法内，加载自定义的任务，参考task目录下的`task.go`文件

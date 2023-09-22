@@ -29,8 +29,8 @@ Database:
     MaxOpenConn: 2
     ConnMaxIdleTime: 12
     Reade:
-      - "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
-    Write: "root:root@tcp(192.168.1.4:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+      - "root:root@tcp(192.168.0.180:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+    Write: "root:root@tcp(192.168.0.180:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
   Mongo:
     Enable: false
     Uri:
@@ -40,7 +40,7 @@ Database:
 
 Redis:
   Disabled: false
-  Addr: "192.168.1.4:6379"
+  Addr: "192.168.0.180:6379"
   Pwd: ""
   Db: 0
   PoolSize: 20

@@ -3,7 +3,7 @@ PLATFORM=Windows
 
 ifeq ($(OS), Windows_NT)
 	PLATFORM=window
-	BINARY_NAME=main.go
+	BINARY_NAME=main.exe
 else
 	ifeq ($(shell uname), Darwin)
 		PLATFORM=mac

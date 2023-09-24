@@ -1,10 +1,10 @@
 package driver
 
 import (
-	"github.com/czx-lab/skeleton/internal/config"
-	constants "github.com/czx-lab/skeleton/internal/constants/config"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"skeleton/internal/config"
+	constants "skeleton/internal/constants/config"
 	"time"
 )
 

@@ -1,8 +1,8 @@
 package event
 
 import (
-	"github.com/czx-lab/skeleton/app/event/listen"
-	"github.com/czx-lab/skeleton/internal/variable"
+	"skeleton/app/event/listen"
+	"skeleton/internal/variable"
 )
 
 type Event struct {

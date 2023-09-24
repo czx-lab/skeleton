@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/czx-lab/skeleton/internal/event"
+	"skeleton/internal/event"
 )
 
 type DemoEventEntry struct {

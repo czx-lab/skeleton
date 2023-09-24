@@ -1,8 +1,8 @@
 package test
 
 import (
-	_ "github.com/czx-lab/skeleton/internal/bootstrap"
-	"github.com/czx-lab/skeleton/internal/variable"
+	_ "skeleton/internal/bootstrap"
+	"skeleton/internal/variable"
 	"testing"
 )
 

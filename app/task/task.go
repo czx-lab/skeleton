@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/czx-lab/skeleton/internal/crontab"
+	"skeleton/internal/crontab"
 )
 
 type Task struct {

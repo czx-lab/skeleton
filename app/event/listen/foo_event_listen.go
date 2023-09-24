@@ -2,8 +2,8 @@ package listen
 
 import (
 	"fmt"
-	event2 "github.com/czx-lab/skeleton/app/event/entity"
-	"github.com/czx-lab/skeleton/internal/event"
+	event2 "skeleton/app/event/entity"
+	"skeleton/internal/event"
 )
 
 type FooListen struct {

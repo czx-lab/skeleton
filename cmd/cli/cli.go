@@ -1,9 +1,9 @@
 package main
 
 import (
-	CustomCommand "github.com/czx-lab/skeleton/app/command"
-	_ "github.com/czx-lab/skeleton/internal/bootstrap"
-	"github.com/czx-lab/skeleton/internal/command"
+	CustomCommand "skeleton/app/command"
+	_ "skeleton/internal/bootstrap"
+	"skeleton/internal/command"
 )
 
 func main() {

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"github.com/czx-lab/skeleton/app/request"
-	"github.com/czx-lab/skeleton/internal/variable/consts"
 	"github.com/gin-gonic/gin"
 	"log"
+	"skeleton/app/request"
+	"skeleton/internal/variable/consts"
 )
 
 var validator *request.Request

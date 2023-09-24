@@ -1,9 +1,9 @@
 package bootstrap
 
 import (
-	"github.com/czx-lab/skeleton/internal/mongo"
-	"github.com/czx-lab/skeleton/internal/variable"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"skeleton/internal/mongo"
+	"skeleton/internal/variable"
 )
 
 func InitMongo() error {

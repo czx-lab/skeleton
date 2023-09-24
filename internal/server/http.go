@@ -12,10 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/czx-lab/skeleton/internal/server/middleware"
-	appRouter "github.com/czx-lab/skeleton/internal/server/router"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"skeleton/internal/server/middleware"
+	appRouter "skeleton/internal/server/router"
 )
 
 type Http struct {

@@ -1,20 +1,20 @@
 package bootstrap
 
 import (
-	AppEvent "github.com/czx-lab/skeleton/internal/event"
 	"log"
+	AppEvent "skeleton/internal/event"
 	"time"
 
-	"github.com/czx-lab/skeleton/app/event"
-	"github.com/czx-lab/skeleton/app/task"
-	"github.com/czx-lab/skeleton/internal/config"
-	"github.com/czx-lab/skeleton/internal/config/driver"
-	"github.com/czx-lab/skeleton/internal/crontab"
-	"github.com/czx-lab/skeleton/internal/logger"
-	"github.com/czx-lab/skeleton/internal/mq"
-	"github.com/czx-lab/skeleton/internal/redis"
-	"github.com/czx-lab/skeleton/internal/variable"
-	"github.com/czx-lab/skeleton/internal/variable/consts"
+	"skeleton/app/event"
+	"skeleton/app/task"
+	"skeleton/internal/config"
+	"skeleton/internal/config/driver"
+	"skeleton/internal/crontab"
+	"skeleton/internal/logger"
+	"skeleton/internal/mq"
+	"skeleton/internal/redis"
+	"skeleton/internal/variable"
+	"skeleton/internal/variable/consts"
 )
 
 func init() {

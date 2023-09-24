@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/czx-lab/skeleton/internal/logger"
+	"skeleton/internal/logger"
 	"testing"
 )
 

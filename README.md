@@ -77,7 +77,7 @@ server.GET("/foo", func(ctx *gin.Context) {
 })
 ```
 
-也可以通过自己定义路由的定义注册，只需要实现`github.com/czx-lab/skeleton/internal/server/router`下面的`Interface`接口。如下示例：
+也可以通过自己定义路由的定义注册，只需要实现`skeleton/internal/server/router`下面的`Interface`接口。如下示例：
 在router目录下定义了一个`CustomRouter`结构体，该结构体实现了`Interface`接口
 
 ```go
@@ -86,7 +86,7 @@ package router
 import (
     "net/http"
     
-    "github.com/czx-lab/skeleton/internal/server"
+    "skeleton/internal/server"
     "github.com/gin-gonic/gin"
 )
 
@@ -136,7 +136,7 @@ func (c *Custom) Handle() gin.HandlerFunc {
 
 ```go
 package demo
-import "github.com/czx-lab/skeleton/internal/variable"
+import "skeleton/internal/variable"
 func Demo() {
     variable.Log.Info("info message")
 }
@@ -291,8 +291,8 @@ MQ:
   
   import (
   	"fmt"
-  	event2 "github.com/czx-lab/skeleton/app/event/entity"
-  	"github.com/czx-lab/skeleton/internal/event"
+  	event2 "skeleton/app/event/entity"
+  	"skeleton/internal/event"
   )
   
   type DemoEventListen struct {

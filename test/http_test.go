@@ -3,9 +3,9 @@ package test
 import (
 	"testing"
 
-	"github.com/czx-lab/skeleton/internal/server"
-	"github.com/czx-lab/skeleton/router"
 	"github.com/gin-gonic/gin"
+	"skeleton/internal/server"
+	"skeleton/router"
 )
 
 func TestHttp(t *testing.T) {

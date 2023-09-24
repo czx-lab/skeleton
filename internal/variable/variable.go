@@ -1,19 +1,19 @@
 package variable
 
 import (
-	"github.com/czx-lab/skeleton/internal/event"
-	"github.com/czx-lab/skeleton/internal/mongo"
 	"log"
 	"os"
+	"skeleton/internal/event"
+	"skeleton/internal/mongo"
 	"strings"
 
-	"github.com/czx-lab/skeleton/internal/config"
-	"github.com/czx-lab/skeleton/internal/crontab"
-	"github.com/czx-lab/skeleton/internal/mq"
-	"github.com/czx-lab/skeleton/internal/variable/consts"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"skeleton/internal/config"
+	"skeleton/internal/crontab"
+	"skeleton/internal/mq"
+	"skeleton/internal/variable/consts"
 )
 
 var (

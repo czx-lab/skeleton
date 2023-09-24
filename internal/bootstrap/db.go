@@ -1,12 +1,12 @@
 package bootstrap
 
 import (
-	"github.com/czx-lab/skeleton/internal/database"
-	"github.com/czx-lab/skeleton/internal/database/db_log"
-	"github.com/czx-lab/skeleton/internal/database/driver"
-	"github.com/czx-lab/skeleton/internal/variable"
 	"gorm.io/gorm"
 	gormLog "gorm.io/gorm/logger"
+	"skeleton/internal/database"
+	"skeleton/internal/database/db_log"
+	"skeleton/internal/database/driver"
+	"skeleton/internal/variable"
 	"time"
 )
 

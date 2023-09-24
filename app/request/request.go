@@ -1,9 +1,9 @@
 package request
 
 import (
-	AppRequest "github.com/czx-lab/skeleton/internal/request"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	AppRequest "skeleton/internal/request"
 )
 
 type Request struct {

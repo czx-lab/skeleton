@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/czx-lab/skeleton/internal/constants/container"
+	"skeleton/internal/constants/container"
 )
 
 // CacheInterface config cache

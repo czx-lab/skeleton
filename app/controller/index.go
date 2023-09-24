@@ -2,11 +2,11 @@ package controller
 
 import (
 	"fmt"
-	"github.com/czx-lab/skeleton/app/event/entity"
-	"github.com/czx-lab/skeleton/app/request"
-	"github.com/czx-lab/skeleton/internal/variable"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"skeleton/app/event/entity"
+	"skeleton/app/request"
+	"skeleton/internal/variable"
 )
 
 type Index struct {

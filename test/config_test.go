@@ -1,9 +1,9 @@
 package test
 
 import (
-	"github.com/czx-lab/skeleton/internal/config"
-	"github.com/czx-lab/skeleton/internal/config/driver"
-	"github.com/czx-lab/skeleton/internal/variable"
+	"skeleton/internal/config"
+	"skeleton/internal/config/driver"
+	"skeleton/internal/variable"
 	"testing"
 )
 

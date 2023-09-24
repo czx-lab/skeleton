@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/czx-lab/skeleton/internal/constants/config"
-	"github.com/czx-lab/skeleton/internal/container"
 	"github.com/spf13/cast"
+	"skeleton/internal/constants/config"
+	"skeleton/internal/container"
 	"sync"
 	"time"
 )

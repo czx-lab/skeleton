@@ -1,4 +1,4 @@
-module github.com/czx-lab/skeleton
+module skeleton
 
 go 1.21
 

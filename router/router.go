@@ -3,11 +3,11 @@ package router
 import (
 	"net/http"
 
-	"github.com/czx-lab/skeleton/app/controller"
-	"github.com/czx-lab/skeleton/app/middleware"
+	"skeleton/app/controller"
+	"skeleton/app/middleware"
 
-	"github.com/czx-lab/skeleton/internal/server"
 	"github.com/gin-gonic/gin"
+	"skeleton/internal/server"
 )
 
 type AppRouter struct {

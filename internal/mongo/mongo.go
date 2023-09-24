@@ -2,10 +2,10 @@ package mongo
 
 import (
 	"context"
-	"github.com/czx-lab/skeleton/internal/mongo/collection"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"skeleton/internal/mongo/collection"
 	"time"
 )
 

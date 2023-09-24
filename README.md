@@ -286,7 +286,7 @@ MQ:
 
   在`app/event/listen`目录中定义一个`DemoEventListen`事件监听，并且该`DemoEventListen`结构体必须要实现`event.Interface`接口：
 
-  ```
+  ```go
   package listen
   
   import (
@@ -305,6 +305,7 @@ MQ:
   func (*DemoEventListen) Process(data any) (any, error) {
   	return fmt.Sprintf("%v --> %s", data, "exec DemoEventListen.Process"), nil
   }
+  ```
 
 - 最后需要将事件进行注册，在`app/event/event.go`文件中的`Init`方法内执行：
 

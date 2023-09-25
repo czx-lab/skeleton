@@ -28,7 +28,7 @@ type SocketOption struct {
 	pingMsg               string
 }
 
-func NewSocket(context *gin.Context, opts ...SocketOptionFunc) (*SocketClient, error) {
+func NewSocket(context *gin.Context, opts ...SocketOptionFunc) (SocketClientInterface, error) {
 	sOpt := &SocketOption{}
 	client := &SocketClient{}
 	for _, opt := range opts {
@@ -46,6 +46,11 @@ type MessageHandler interface {
 	OnMessage(messageType int, data []byte)
 	OnError(err error)
 	OnClose()
+}
+
+type SocketClientInterface interface {
+	ReadPump(handler MessageHandler)
+	SendMessage(messageType int, message string) error
 }
 
 func (s *SocketClient) defaultOption(opts *SocketOption) {

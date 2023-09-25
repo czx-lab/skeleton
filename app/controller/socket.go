@@ -23,7 +23,7 @@ func (s *Socket) Connect(ctx *gin.Context) {
 }
 
 type socketHandler struct {
-	client *server.SocketClient
+	client server.SocketClientInterface
 }
 
 func (s *socketHandler) OnMessage(messageType int, data []byte) {

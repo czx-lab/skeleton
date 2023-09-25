@@ -1,11 +1,14 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
+	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type SocketClient struct {
@@ -27,12 +30,12 @@ type SocketOption struct {
 
 func NewSocket(context *gin.Context, opts ...SocketOptionFunc) (*SocketClient, error) {
 	sOpt := &SocketOption{}
+	client := &SocketClient{}
 	for _, opt := range opts {
 		opt.apply(sOpt)
 	}
-	client := &SocketClient{
-		option: *sOpt,
-	}
+	client.defaultOption(sOpt)
+	client.option = *sOpt
 	if err := client.upGrader(context); err != nil {
 		return nil, err
 	}
@@ -45,10 +48,31 @@ type MessageHandler interface {
 	OnClose()
 }
 
+func (s *SocketClient) defaultOption(opts *SocketOption) {
+	if opts.pingPeriod == 0 {
+		opts.pingPeriod = 20 * time.Second
+	}
+	if opts.writeDeadline == 0 {
+		opts.writeDeadline = 35 * time.Second
+	}
+	if opts.writeReadBufferSize == 0 {
+		opts.writeReadBufferSize = 20480
+	}
+	if opts.heartbeatFailMaxTimes == 0 {
+		opts.heartbeatFailMaxTimes = 4
+	}
+	if opts.readDeadline == 0 {
+		opts.readDeadline = 30 * time.Second
+	}
+}
+
 // ReadPump 消息处理
 func (s *SocketClient) ReadPump(handler MessageHandler) {
 	defer func() {
-		handler.OnClose()
+		if err := recover(); err != nil {
+			handler.OnError(errors.New(fmt.Sprintf("%v", err)))
+			handler.OnClose()
+		}
 	}()
 	for {
 		if mt, data, err := s.Conn.ReadMessage(); err != nil {

@@ -6,8 +6,9 @@ import (
 	"skeleton/app/controller"
 	"skeleton/app/middleware"
 
-	"github.com/gin-gonic/gin"
 	"skeleton/internal/server"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AppRouter struct {
@@ -28,4 +29,6 @@ func (*AppRouter) Add(server *gin.Engine) {
 
 	index := &controller.Index{}
 	server.GET("/hello", index.Hello)
+
+	server.GET("/socket", (&controller.Socket{}).Connect)
 }

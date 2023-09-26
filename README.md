@@ -61,6 +61,32 @@ make
 └─test ---> 单元测试目录
 ```
 
+### 骨架全局变量
+
+  该骨架中全局变量如下，可直接查看`internal/variable.go`文件。
+  ```go
+  var (
+    // 项目更目录
+	BasePath string
+  
+    // Log日志
+	Log      *zap.Logger
+  
+    // 配置，Viper封装
+	Config   *config.Config
+  
+    // 数据库Gorm
+	DB       *gorm.DB
+	MongoDB  *mongo.MongoDB
+	Redis    *redis.Client
+	Crontab  *crontab.Crontab
+	MQ       *mq.RocketMQ
+  
+    // 事件
+	Event    *event.Event
+  )
+  ```
+
 ### 基础功能
 
 ---
@@ -434,8 +460,7 @@ func (d *DemoController) Index(ctx *gin.Context) {
   
   import "fmt"
   
-  type SuccessTask struct {
-  }
+  type SuccessTask struct {}
   
   // 时间规则
   func (s *SuccessTask) Rule() string {
@@ -452,3 +477,45 @@ func (d *DemoController) Index(ctx *gin.Context) {
 - 加载定时任务
 
   需要在`app/task/task.go`文件中的`Tasks`方法内，加载自定义的任务，参考task目录下的`task.go`文件
+
+#### Websocket
+
+- 消息处理与链接关闭监听
+
+  该骨架中的`websocket`是对`github.com/gorilla/websocket`依赖库的封装，在编写通信功能时，只需要实现`server.MessageHandler`接口：
+
+  ```go
+  type socketHandler struct {}
+  
+  // 消息处理
+  func (s *socketHandler) OnMessage(messageType int, data []byte) {
+    fmt.Println(fmt.Sprintf("mt: %v，data: %s", messageType, data))
+  }
+  
+  func (s *socketHandler) OnError(err error) {
+    fmt.Println(fmt.Sprintf("socket err: %s", err))
+  }
+  
+  func (s *socketHandler) OnClose() {
+    fmt.Println("socket closed.")
+  }
+  ```
+
+- 创建链接Websocket
+
+  ```go
+  client, err := server.NewSocket(ctx)
+  if err != nil {
+  	ctx.JSON(http.StatusAccepted, gin.H{"message": err})
+  	return
+  }
+  client.ReadPump(&socketHandler{})
+  ```
+
+- 发送消息
+
+  ```go
+  client.SendMessage(websocket.TextMessage, "Server reply message")
+  ```
+
+  

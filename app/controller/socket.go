@@ -28,7 +28,7 @@ type socketHandler struct {
 
 func (s *socketHandler) OnMessage(messageType int, data []byte) {
 	fmt.Println(fmt.Sprintf("mt: %v，data: %s", messageType, data))
-	s.client.SendMessage(websocket.TextMessage, "服务端回复消息")
+	s.client.SendMessage(websocket.TextMessage, "Server reply message")
 }
 
 func (s *socketHandler) OnError(err error) {

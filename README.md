@@ -85,7 +85,7 @@ make
     // 事件
 	Event    *event.Event
   )
-  ``` 
+  ```
 
 ### 基础功能
 
@@ -478,7 +478,9 @@ func (d *DemoController) Index(ctx *gin.Context) {
 
   需要在`app/task/task.go`文件中的`Tasks`方法内，加载自定义的任务，参考task目录下的`task.go`文件
 
-- Websocket
+#### Websocket
+
+- 消息处理与链接关闭监听
 
   该骨架中的`websocket`是对`github.com/gorilla/websocket`依赖库的封装，在编写通信功能时，只需要实现`server.MessageHandler`接口：
 
@@ -498,6 +500,22 @@ func (d *DemoController) Index(ctx *gin.Context) {
     fmt.Println("socket closed.")
   }
   ```
+
+- 创建链接Websocket
+
+  ```go
+  client, err := server.NewSocket(ctx)
+  if err != nil {
+  	ctx.JSON(http.StatusAccepted, gin.H{"message": err})
+  	return
+  }
+  client.ReadPump(&socketHandler{})
+  ```
+
+- 发送消息
+
+  ```go
+  client.SendMessage(websocket.TextMessage, "Server reply message")
+  ```
+
   
-    
-    

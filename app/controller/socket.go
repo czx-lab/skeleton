@@ -2,33 +2,39 @@ package controller
 
 import (
 	"fmt"
-	"net/http"
-	"skeleton/internal/server"
+
+	AppSocket "skeleton/internal/server/websocket"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
+
+var client AppSocket.SocketClientInterface
+
+func init() {
+	client, _ = AppSocket.NewSocket(AppSocket.WithHandler(&socketHandler{}))
+}
 
 type Socket struct{}
 
 func (s *Socket) Connect(ctx *gin.Context) {
-	client, err := server.NewSocket(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusAccepted, gin.H{"message": err})
-		return
-	}
-	client.ReadPump(&socketHandler{
-		client: client,
+	subkey := uuid.New().String()
+	client.Connect(ctx, subkey)
+	client.WriteMessage(AppSocket.Message{
+		MessageType: websocket.TextMessage,
+		Data:        []byte(fmt.Sprintf("uuid: %s", subkey)),
 	})
 }
 
-type socketHandler struct {
-	client server.SocketClientInterface
-}
+type socketHandler struct{}
 
-func (s *socketHandler) OnMessage(messageType int, data []byte) {
-	fmt.Println(fmt.Sprintf("mt: %v，data: %s", messageType, data))
-	s.client.SendMessage(websocket.TextMessage, "Server reply message")
+func (s *socketHandler) OnMessage(message AppSocket.Message) {
+	fmt.Println(fmt.Sprintf("mt: %v，data: %s, uuid: %v", message.MessageType, message.Data, message.Subkeys))
+	client.WriteMessage(AppSocket.Message{
+		MessageType: websocket.TextMessage,
+		Data:        []byte("服务端收到消息并回复ok"),
+	})
 }
 
 func (s *socketHandler) OnError(err error) {

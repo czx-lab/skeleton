@@ -482,14 +482,18 @@ func (d *DemoController) Index(ctx *gin.Context) {
 
 - 消息处理与链接关闭监听
 
-  该骨架中的`websocket`是对`github.com/gorilla/websocket`依赖库的封装，在编写通信功能时，只需要实现`server.MessageHandler`接口：
+  该骨架中的`websocket`是对`github.com/gorilla/websocket`依赖库的封装，在编写通信功能时，只需要实现`websocket.MessageHandler`接口：
 
   ```go
+  import 	(
+    AppSocket "skeleton/internal/server/websocket"
+  )
+
   type socketHandler struct {}
   
   // 消息处理
-  func (s *socketHandler) OnMessage(messageType int, data []byte) {
-    fmt.Println(fmt.Sprintf("mt: %v，data: %s", messageType, data))
+  func (s *socketHandler) OnMessage(AppSocket.Message) {
+    fmt.Println(fmt.Sprintf("mt: %v，data: %s, uuids: %v", message.MessageType, message.Data, message.Subkeys))
   }
   
   func (s *socketHandler) OnError(err error) {
@@ -504,18 +508,40 @@ func (d *DemoController) Index(ctx *gin.Context) {
 - 创建链接Websocket
 
   ```go
-  client, err := server.NewSocket(ctx)
-  if err != nil {
-  	ctx.JSON(http.StatusAccepted, gin.H{"message": err})
-  	return
+  import 	(
+    "github.com/google/uuid"
+    "github.com/gin-gonic/gin"
+    AppSocket "skeleton/internal/server/websocket"
+  )
+
+  var client AppSocket.SocketClientInterface
+
+  func init() {
+    client, _ = AppSocket.NewSocket(AppSocket.WithHandler(&socketHandler{}))
   }
-  client.ReadPump(&socketHandler{})
+
+  func Connect(ctx *gin.Context) {
+    subkey := uuid.New().String()
+	  client.Connect(ctx, subkey)
+  }
   ```
 
 - 发送消息
 
+  这里可以发送全部信息给全部用户，或者发送给用户，`AppSocket.Message`结构体中`Subkeys []string`表示需要发送给哪些用户：
+
   ```go
-  client.SendMessage(websocket.TextMessage, "Server reply message")
+  client.WriteMessage(AppSocket.Message{
+		MessageType: websocket.TextMessage,
+		Data:        []byte("服务端收到消息并回复ok"),
+    Subkeys:     []string{"9bae9c4f-87a8-46b1-b1b9-4f37b63a7d19"}
+	})
   ```
+
+  > 如果`Subkeys`是空切片数组，会将消息推送给全部在线用户
+
+- 心跳消息
+
+websocket标准协议实现隐式心跳，Server端向Client端发送ping格式数据包,浏览器收到ping标准格式，自动将消息原路返回给服务器
 
   

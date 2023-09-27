@@ -27,6 +27,8 @@ type MessageHandler interface {
 
 type SocketClientInterface interface {
 	WriteMessage(message Message) error
+	GetAllKeys() []string
+	GetClientState(key string) bool
 	Connect(ctx *gin.Context, subkey string)
 }
 
@@ -72,6 +74,29 @@ func (s *Socket) listen() {
 
 func (s *Socket) Connect(ctx *gin.Context, subkey string) {
 	s.clients[subkey] = NewSocketClient(ctx, subkey, s)
+}
+
+func (s *Socket) GetAllKeys() []string {
+	clients := s.clients
+	if len(clients) == 0 {
+		return []string{}
+	}
+	keys := make([]string, 0, len(clients))
+	for k := range clients {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func (s *Socket) GetClientState(key string) bool {
+	client, ok := s.clients[key]
+	if !ok {
+		return false
+	}
+	if _, ok := <-client.state; !ok {
+		return false
+	}
+	return true
 }
 
 func (s *Socket) WriteMessage(message Message) error {

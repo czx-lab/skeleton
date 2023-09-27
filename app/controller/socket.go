@@ -31,6 +31,7 @@ type socketHandler struct{}
 
 func (s *socketHandler) OnMessage(message AppSocket.Message) {
 	fmt.Println(fmt.Sprintf("mt: %v，data: %s, uuid: %v", message.MessageType, message.Data, message.Subkeys))
+	fmt.Println(client.GetAllKeys())
 	client.WriteMessage(AppSocket.Message{
 		MessageType: websocket.TextMessage,
 		Data:        []byte("服务端收到消息并回复ok"),

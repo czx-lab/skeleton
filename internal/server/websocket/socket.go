@@ -73,6 +73,10 @@ func (s *Socket) listen() {
 }
 
 func (s *Socket) Connect(ctx *gin.Context, subkey string) {
+	client, ok := s.clients[subkey]
+	if ok && client.isClose() {
+		return
+	}
 	s.clients[subkey] = NewSocketClient(ctx, subkey, s)
 }
 

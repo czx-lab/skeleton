@@ -542,6 +542,11 @@ func (d *DemoController) Index(ctx *gin.Context) {
 
 - 心跳消息
 
-websocket标准协议实现隐式心跳，Server端向Client端发送ping格式数据包,浏览器收到ping标准格式，自动将消息原路返回给服务器
+  websocket标准协议实现隐式心跳，Server端向Client端发送ping格式数据包,浏览器收到ping标准格式，自动将消息原路返回给服务器
+
+- 其他方法
+
+  - `GetAllKeys() []string`:获取所有websocket连接uuid
+  - `GetClientState(key string) bool`:获取指定客户端在线状态
 
   

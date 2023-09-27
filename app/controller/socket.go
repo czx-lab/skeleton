@@ -38,10 +38,10 @@ func (s *socketHandler) OnMessage(message AppSocket.Message) {
 	})
 }
 
-func (s *socketHandler) OnError(err error) {
-	fmt.Println(fmt.Sprintf("socket err: %s", err))
+func (s *socketHandler) OnError(key string, err error) {
+	fmt.Printf("socket err: %s, client: %s", err, key)
 }
 
-func (s *socketHandler) OnClose() {
-	fmt.Println("socket closed.")
+func (s *socketHandler) OnClose(key string) {
+	fmt.Printf("socket closed. client:%s", key)
 }

@@ -64,6 +64,7 @@ func (s *Socket) listen() {
 			if client, ok := s.clients[key]; ok {
 				delete(s.clients, key)
 				close(client.send)
+				close(client.state)
 			}
 		}
 	}

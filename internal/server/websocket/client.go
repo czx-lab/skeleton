@@ -11,38 +11,39 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type ClientState int
+
+const (
+	_ ClientState = iota
+	OnlineState
+	OffLineState
+)
+
 type SocketClient struct {
 	key                string
 	conn               *websocket.Conn
 	send               chan []byte
 	heartbeatFailTimes int
 	socket             *Socket
-	state              chan struct{}
+	state              ClientState
 }
 
 func NewSocketClient(ctx *gin.Context, key string, socket *Socket) *SocketClient {
 	client := &SocketClient{
 		key:    key,
 		socket: socket,
-		state:  make(chan struct{}),
+		state:  OnlineState,
 	}
 	client.upGrader(ctx, socket.opts)
 	return client
 }
 
-func (s *SocketClient) isClose() bool {
-	_, ok := <-s.state
-	return ok
-}
-
 func (s *SocketClient) readPump() {
 	defer func() {
 		if err := recover(); err != nil {
-			s.socket.opts.handler.OnError(errors.New(fmt.Sprintf("%v", err)))
+			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
 		}
-		if s.isClose() {
-			s.state <- struct{}{}
-		}
+		s.state = OffLineState
 	}()
 	_ = s.conn.SetReadDeadline(time.Now().Add(s.socket.opts.readDeadline))
 	s.conn.SetPongHandler(func(receivedPong string) error {
@@ -55,7 +56,7 @@ func (s *SocketClient) readPump() {
 	})
 	for {
 		if mt, data, err := s.conn.ReadMessage(); err != nil {
-			s.socket.opts.handler.OnError(err)
+			s.socket.opts.handler.OnError(s.key, err)
 			break
 		} else {
 			message := Message{
@@ -72,11 +73,9 @@ func (s *SocketClient) writePump() {
 	ticker := time.NewTicker(s.socket.opts.pingPeriod)
 	defer func() {
 		if err := recover(); err != nil {
-			s.socket.opts.handler.OnError(errors.New(fmt.Sprintf("%v", err)))
+			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
 		}
-		if s.isClose() {
-			s.state <- struct{}{}
-		}
+		s.state = OffLineState
 	}()
 	for {
 		select {
@@ -113,15 +112,11 @@ func (s *SocketClient) writePump() {
 	}
 }
 
-func (s *SocketClient) listenState() {
-	for {
-		select {
-		case <-s.state:
-			s.socket.unregister <- s.key
-			s.conn.Close()
-			s.socket.opts.handler.OnClose()
-			return
-		}
+func (s *SocketClient) close() {
+	if s.state == OnlineState {
+		s.socket.unregister <- s.key
+		s.conn.Close()
+		s.socket.opts.handler.OnClose(s.key)
 	}
 }
 
@@ -144,7 +139,6 @@ func (s *SocketClient) upGrader(context *gin.Context, opts *SocketOption) {
 	}
 	s.conn = wsConn
 	s.send = make(chan []byte, opts.writeReadBufferSize)
-	go s.listenState()
 	go s.readPump()
 	go s.writePump()
 }

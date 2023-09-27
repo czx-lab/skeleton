@@ -21,14 +21,14 @@ type SocketOption struct {
 
 type MessageHandler interface {
 	OnMessage(message Message)
-	OnError(err error)
-	OnClose()
+	OnError(key string, err error)
+	OnClose(key string)
 }
 
 type SocketClientInterface interface {
 	WriteMessage(message Message) error
 	GetAllKeys() []string
-	GetClientState(key string) bool
+	GetClientState(key string) ClientState
 	Connect(ctx *gin.Context, subkey string)
 }
 
@@ -66,7 +66,6 @@ func (s *Socket) listen() {
 			if client, ok := s.clients[key]; ok {
 				delete(s.clients, key)
 				close(client.send)
-				close(client.state)
 			}
 		}
 	}
@@ -74,7 +73,7 @@ func (s *Socket) listen() {
 
 func (s *Socket) Connect(ctx *gin.Context, subkey string) {
 	client, ok := s.clients[subkey]
-	if ok && client.isClose() {
+	if ok && client.state == OnlineState {
 		return
 	}
 	s.clients[subkey] = NewSocketClient(ctx, subkey, s)
@@ -87,40 +86,35 @@ func (s *Socket) GetAllKeys() []string {
 	}
 	keys := make([]string, 0, len(clients))
 	for k, c := range clients {
-		if c.isClose() {
+		if c.state == OnlineState {
 			keys = append(keys, k)
 		}
 	}
 	return keys
 }
 
-func (s *Socket) GetClientState(key string) bool {
+func (s *Socket) GetClientState(key string) ClientState {
 	client, ok := s.clients[key]
 	if !ok {
-		return false
+		return OffLineState
 	}
-	if _, ok := <-client.state; !ok {
-		return false
-	}
-	return true
+	return client.state
 }
 
 func (s *Socket) WriteMessage(message Message) error {
 	if len(message.Subkeys) == 0 {
 		for _, client := range s.clients {
-			if client.isClose() {
+			if client.state == OnlineState {
 				client.send <- message.Data
 			}
 		}
 	} else {
 		for _, key := range message.Subkeys {
 			client, ok := s.clients[key]
-			if !ok {
+			if !ok && client.state == OffLineState {
 				return errors.New("Connect does not exist")
 			}
-			if client.isClose() {
-				client.send <- message.Data
-			}
+			client.send <- message.Data
 		}
 	}
 	return nil

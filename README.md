@@ -552,6 +552,6 @@ func (d *DemoController) Index(ctx *gin.Context) {
 - 其他方法
 
   - `GetAllKeys() []string`:获取所有websocket连接uuid
-  - `GetClientState(key string) bool`:获取指定客户端在线状态
+  - `GetClientState(key string) ClientState`:获取指定客户端在线状态
 
   

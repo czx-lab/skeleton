@@ -30,12 +30,19 @@ func NewSocketClient(ctx *gin.Context, key string, socket *Socket) *SocketClient
 	return client
 }
 
+func (s *SocketClient) isClose() bool {
+	_, ok := <-s.state
+	return ok
+}
+
 func (s *SocketClient) readPump() {
 	defer func() {
 		if err := recover(); err != nil {
 			s.socket.opts.handler.OnError(errors.New(fmt.Sprintf("%v", err)))
 		}
-		s.state <- struct{}{}
+		if s.isClose() {
+			s.state <- struct{}{}
+		}
 	}()
 	_ = s.conn.SetReadDeadline(time.Now().Add(s.socket.opts.readDeadline))
 	s.conn.SetPongHandler(func(receivedPong string) error {
@@ -67,7 +74,9 @@ func (s *SocketClient) writePump() {
 		if err := recover(); err != nil {
 			s.socket.opts.handler.OnError(errors.New(fmt.Sprintf("%v", err)))
 		}
-		s.state <- struct{}{}
+		if s.isClose() {
+			s.state <- struct{}{}
+		}
 	}()
 	for {
 		select {

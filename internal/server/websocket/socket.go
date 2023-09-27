@@ -86,8 +86,10 @@ func (s *Socket) GetAllKeys() []string {
 		return []string{}
 	}
 	keys := make([]string, 0, len(clients))
-	for k := range clients {
-		keys = append(keys, k)
+	for k, c := range clients {
+		if c.isClose() {
+			keys = append(keys, k)
+		}
 	}
 	return keys
 }
@@ -106,7 +108,9 @@ func (s *Socket) GetClientState(key string) bool {
 func (s *Socket) WriteMessage(message Message) error {
 	if len(message.Subkeys) == 0 {
 		for _, client := range s.clients {
-			client.send <- message.Data
+			if client.isClose() {
+				client.send <- message.Data
+			}
 		}
 	} else {
 		for _, key := range message.Subkeys {
@@ -114,7 +118,9 @@ func (s *Socket) WriteMessage(message Message) error {
 			if !ok {
 				return errors.New("Connect does not exist")
 			}
-			client.send <- message.Data
+			if client.isClose() {
+				client.send <- message.Data
+			}
 		}
 	}
 	return nil

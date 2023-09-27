@@ -43,7 +43,7 @@ func (s *SocketClient) readPump() {
 		if err := recover(); err != nil {
 			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
 		}
-		s.state = OffLineState
+		s.close()
 	}()
 	_ = s.conn.SetReadDeadline(time.Now().Add(s.socket.opts.readDeadline))
 	s.conn.SetPongHandler(func(receivedPong string) error {
@@ -75,7 +75,7 @@ func (s *SocketClient) writePump() {
 		if err := recover(); err != nil {
 			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
 		}
-		s.state = OffLineState
+		s.close()
 	}()
 	for {
 		select {
@@ -114,6 +114,7 @@ func (s *SocketClient) writePump() {
 
 func (s *SocketClient) close() {
 	if s.state == OnlineState {
+		s.state = OffLineState
 		s.socket.unregister <- s.key
 		s.conn.Close()
 		s.socket.opts.handler.OnClose(s.key)

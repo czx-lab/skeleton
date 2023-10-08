@@ -499,16 +499,16 @@ func (d *DemoController) Index(ctx *gin.Context) {
   type socketHandler struct {}
   
   // 消息处理
-  func (s *socketHandler) OnMessage(AppSocket.Message) {
+  func (s *socketHandler) OnMessage(message AppSocket.Message) {
     fmt.Println(fmt.Sprintf("mt: %v，data: %s, uuids: %v", message.MessageType, message.Data, message.Subkeys))
   }
   
-  func (s *socketHandler) OnError(err error) {
-    fmt.Println(fmt.Sprintf("socket err: %s", err))
+  func (s *socketHandler) OnError(key string, err error) {
+    fmt.Printf("socket err: %s, client: %s", err, key)
   }
   
-  func (s *socketHandler) OnClose() {
-    fmt.Println("socket closed.")
+  func (s *socketHandler) OnClose(key string) {
+    fmt.Printf("socket closed. client:%s", key)
   }
   ```
 

@@ -286,11 +286,12 @@ Crontab:
 
 # 消息队列，使用rocketmq
 MQ:
-  Enable: false
+  Enable: true
   Servers:
     - "127.0.0.1:9876"
-  ConsumptionSize: 1
   Retries: 1
+  ProducerGroupName: "ProducerGroup"
+  ConsumerGroupName: "ConsumerGroup"
 ```
 
 #### 事件机制

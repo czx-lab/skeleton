@@ -7,13 +7,14 @@ import (
 	"skeleton/internal/mongo"
 	"strings"
 
-	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"skeleton/internal/config"
 	"skeleton/internal/crontab"
 	"skeleton/internal/mq"
 	"skeleton/internal/variable/consts"
+
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 var (
@@ -24,7 +25,7 @@ var (
 	MongoDB  *mongo.MongoDB
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
-	MQ       *mq.RocketMQ
+	MQ       mq.Interface
 	Event    *event.Event
 )
 

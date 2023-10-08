@@ -71,23 +71,25 @@ make
   该骨架中全局变量如下，可直接查看`internal/variable.go`文件。
   ```go
   var (
-    // 项目更目录
+  // 项目更目录
 	BasePath string
   
-    // Log日志
+  // Log日志
 	Log      *zap.Logger
   
-    // 配置，Viper封装
+  // 配置，Viper封装
 	Config   *config.Config
   
-    // 数据库Gorm
+  // 数据库Gorm
 	DB       *gorm.DB
 	MongoDB  *mongo.MongoDB
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
-	MQ       *mq.RocketMQ
+
+  // rocketmq
+	MQ       mq.Interface
   
-    // 事件
+  // 事件
 	Event    *event.Event
   )
   ```
@@ -553,5 +555,13 @@ func (d *DemoController) Index(ctx *gin.Context) {
 
   - `GetAllKeys() []string`:获取所有websocket连接uuid
   - `GetClientState(key string) ClientState`:获取指定客户端在线状态
+
+#### 消息中间件（RocketMQ）  
+
+消息中间件的使用可参考`test/mq_test.go`单元测试
+
+骨架对外提供了`mq.Interface`接口中的方法，可查看`internal/mq/rocketmq.go`文件下的`Interface`接口定义
+
+定义consumer时，只需要实现`mq.ConsumerInterface`接口即可，详见`mq_test`单元测试
 
   

@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
@@ -13,7 +14,8 @@ type Interface interface {
 	Consumer() rocketmq.PushConsumer
 	Producer() rocketmq.Producer
 	Shutdown() (err error)
-	Subscribe() error
+	Subscribe(consumers ...ConsumerInterface) error
+	SendMessage(msg *primitive.Message) error
 }
 
 type ConsumerExecFunc func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
@@ -31,10 +33,10 @@ type RocketMQ struct {
 }
 
 type Config struct {
-	NameServers     primitive.NamesrvAddr
-	GroupId         string
-	ConsumptionSize int
-	Retries         int
+	NameServers       primitive.NamesrvAddr
+	ProducerGroupName string
+	ConsumerGroupName string
+	Retries           int
 }
 
 type Option interface {
@@ -47,11 +49,12 @@ func (f OptionFunc) apply(conf *Config) {
 	f(conf)
 }
 
-func New(opts ...Option) (*RocketMQ, error) {
+func New(opts ...Option) (Interface, error) {
 	conf := &Config{}
 	for _, opt := range opts {
 		opt.apply(conf)
 	}
+	defaultConfig(conf)
 	mqClass := &RocketMQ{
 		conf: conf,
 	}
@@ -64,48 +67,21 @@ func New(opts ...Option) (*RocketMQ, error) {
 	return mqClass, nil
 }
 
-func (r *RocketMQ) newProducer() error {
-	var err error
-	r.producerProvider, err = rocketmq.NewProducer(
-		producer.WithNameServer(r.conf.NameServers),
-		producer.WithRetry(r.conf.Retries),
-		producer.WithGroupName(r.conf.GroupId),
-	)
-	if err != nil {
-		return err
-	}
-	if err = r.producerProvider.Start(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *RocketMQ) newConsumer() error {
-	var err error
-	r.consumerProvider, err = rocketmq.NewPushConsumer(
-		consumer.WithGroupName(r.conf.GroupId),
-		consumer.WithNameServer(r.conf.NameServers),
-	)
-	if err != nil {
-		return err
-	}
-	if err = r.consumerProvider.Start(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *RocketMQ) Subscribe(consumers ...ConsumerInterface) error {
 	for _, cons := range consumers {
 		if err := r.consumerProvider.Subscribe(cons.GetTopic(), cons.GetSelector(), cons.Exec()); err != nil {
 			return err
 		}
 	}
-	return r.startConsumer()
+	return r.consumerProvider.Start()
 }
 
-func (r *RocketMQ) startConsumer() error {
-	return r.consumerProvider.Start()
+func (r *RocketMQ) SendMessage(msg *primitive.Message) error {
+	_, err := r.producerProvider.SendSync(context.Background(), msg)
+	if err != nil {
+		return fmt.Errorf("failed to send message: %w", err)
+	}
+	return nil
 }
 
 func (r *RocketMQ) Consumer() rocketmq.PushConsumer {
@@ -123,26 +99,60 @@ func (r *RocketMQ) Shutdown() (err error) {
 	return r.consumerProvider.Shutdown()
 }
 
+func (r *RocketMQ) newProducer() error {
+	var err error
+	r.producerProvider, err = rocketmq.NewProducer(
+		producer.WithNameServer(r.conf.NameServers),
+		producer.WithRetry(r.conf.Retries),
+		producer.WithGroupName(r.conf.ProducerGroupName),
+	)
+	if err != nil {
+		return err
+	}
+	if err = r.producerProvider.Start(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RocketMQ) newConsumer() error {
+	var err error
+	r.consumerProvider, err = rocketmq.NewPushConsumer(
+		consumer.WithGroupName(r.conf.ConsumerGroupName),
+		consumer.WithNameServer(r.conf.NameServers),
+	)
+	return err
+}
+
+func defaultConfig(conf *Config) {
+	if conf.ConsumerGroupName == "" {
+		conf.ConsumerGroupName = "defaultConsumerGroup"
+	}
+	if conf.ProducerGroupName == "" {
+		conf.ProducerGroupName = "defaultProducerGroup"
+	}
+}
+
 func WithNameServers(servers primitive.NamesrvAddr) Option {
 	return OptionFunc(func(conf *Config) {
 		conf.NameServers = servers
 	})
 }
 
-func WithGroupId(GId string) Option {
+func WithProducerGroupName(GId string) Option {
 	return OptionFunc(func(conf *Config) {
-		conf.GroupId = GId
+		conf.ProducerGroupName = GId
+	})
+}
+
+func WithConsumerGroupName(GId string) Option {
+	return OptionFunc(func(conf *Config) {
+		conf.ConsumerGroupName = GId
 	})
 }
 
 func WithRetries(retries int) Option {
 	return OptionFunc(func(conf *Config) {
 		conf.Retries = retries
-	})
-}
-
-func WithConsumptionSize(size int) Option {
-	return OptionFunc(func(conf *Config) {
-		conf.ConsumptionSize = size
 	})
 }

@@ -58,8 +58,8 @@ func init() {
 	if variable.Config.GetBool("MQ.Enable") {
 		if variable.MQ, err = mq.New(
 			mq.WithNameServers(variable.Config.GetStringSlice("MQ.Servers")),
-			mq.WithGroupId(variable.Config.GetString("MQ.GroupId")),
-			mq.WithConsumptionSize(variable.Config.GetInt("MQ.ConsumptionSize")),
+			mq.WithConsumerGroupName(variable.Config.GetString("MQ.ConsumerGroupName")),
+			mq.WithProducerGroupName(variable.Config.GetString("MQ.ProducerGroupName")),
 			mq.WithRetries(variable.Config.GetInt("MQ.Retries")),
 		); err != nil {
 			log.Fatal(consts.ErrorInitMQ)

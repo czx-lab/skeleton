@@ -13,9 +13,11 @@ import (
 type Interface interface {
 	Consumer() rocketmq.PushConsumer
 	Producer() rocketmq.Producer
+	TransProducer(listener primitive.TransactionListener) (rocketmq.TransactionProducer, error)
 	Shutdown() (err error)
 	Subscribe(consumers ...ConsumerInterface) error
 	SendMessage(msg *primitive.Message) error
+	SendTransactionMessage(rmq rocketmq.TransactionProducer, msg *primitive.Message) error
 }
 
 type ConsumerExecFunc func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
@@ -84,12 +86,37 @@ func (r *RocketMQ) SendMessage(msg *primitive.Message) error {
 	return nil
 }
 
+func (r *RocketMQ) SendTransactionMessage(rmq rocketmq.TransactionProducer, msg *primitive.Message) error {
+	_, err := rmq.SendMessageInTransaction(context.Background(), msg)
+	if err != nil {
+		return fmt.Errorf("failed to send message: %w", err)
+	}
+	return nil
+}
+
 func (r *RocketMQ) Consumer() rocketmq.PushConsumer {
 	return r.consumerProvider
 }
 
 func (r *RocketMQ) Producer() rocketmq.Producer {
 	return r.producerProvider
+}
+
+func (r *RocketMQ) TransProducer(listener primitive.TransactionListener) (rocketmq.TransactionProducer, error) {
+	var err error
+	groupName := fmt.Sprintf("Trans%s", r.conf.ProducerGroupName)
+	rmq, err := rocketmq.NewTransactionProducer(
+		listener,
+		producer.WithNameServer(r.conf.NameServers),
+		producer.WithGroupName(groupName),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := rmq.Start(); err != nil {
+		return nil, err
+	}
+	return rmq, nil
 }
 
 func (r *RocketMQ) Shutdown() (err error) {

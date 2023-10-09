@@ -6,6 +6,9 @@ import (
 	"github.com/streadway/amqp"
 )
 
+var instance RabbitMQInterface
+var once sync.Once
+
 type RabbitMQ struct {
 	addr string
 	pool sync.Pool
@@ -93,18 +96,21 @@ type ConsumerOption struct {
 }
 
 func NewRabbitMq(addr string) RabbitMQInterface {
-	return &RabbitMQ{
-		addr: addr,
-		pool: sync.Pool{
-			New: func() any {
-				conn, err := connect(addr)
-				if err != nil {
-					panic(err)
-				}
-				return conn
+	once.Do(func() {
+		instance = &RabbitMQ{
+			addr: addr,
+			pool: sync.Pool{
+				New: func() any {
+					conn, err := connect(addr)
+					if err != nil {
+						panic(err)
+					}
+					return conn
+				},
 			},
-		},
-	}
+		}
+	})
+	return instance
 }
 
 func (r *RabbitMQ) GetMQConn() *RabbitMQConnect {

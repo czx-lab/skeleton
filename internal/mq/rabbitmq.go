@@ -30,6 +30,10 @@ type ConsumerHandler interface {
 	Exec(msg <-chan amqp.Delivery)
 }
 
+type InitConsumer interface {
+	InitConsumers() []ConsumerHandler
+}
+
 type Mode int
 
 const (

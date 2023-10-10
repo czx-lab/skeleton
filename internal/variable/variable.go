@@ -25,8 +25,11 @@ var (
 	MongoDB  *mongo.MongoDB
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
-	MQ       mq.Interface
+	Amqp     mq.RabbitMQInterface
 	Event    *event.Event
+
+	// 目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
+	RocketMQ mq.Interface
 )
 
 func init() {

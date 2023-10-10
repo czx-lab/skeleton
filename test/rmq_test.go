@@ -113,4 +113,5 @@ func TestRmqConsumer(t *testing.T) {
 		}
 	}()
 	rmq.Consumers(&RmqFooConsumer{}, &RmqFooTwoConsumer{})
+	<-(chan any)(nil)
 }

@@ -86,7 +86,10 @@ make
 	Redis    *redis.Client
 	Crontab  *crontab.Crontab
 
-  // rocketmq
+  // RabbitMQ
+  Amqp     mq.RabbitMQInterface
+
+  // rocketmq， 目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
 	MQ       mq.Interface
   
   // 事件
@@ -292,6 +295,11 @@ MQ:
   Retries: 1
   ProducerGroupName: "ProducerGroup"
   ConsumerGroupName: "ConsumerGroup"
+
+# RabbitMQ
+Amqp:
+  Enable: true
+  Addr: "amqp://guest:guest@127.0.0.1:5672/"  
 ```
 
 #### 事件机制
@@ -557,7 +565,98 @@ func (d *DemoController) Index(ctx *gin.Context) {
   - `GetAllKeys() []string`:获取所有websocket连接uuid
   - `GetClientState(key string) ClientState`:获取指定客户端在线状态
 
-#### 消息中间件（RocketMQ）  
+### 消息中间件
+
+#### RabbitMQ
+
+RabbitMQ消息中间件的使用可参考`test/rmq_test.go`单元测试，同时骨架中也实现了RabbitMQ的简单模式示例：`app/amqp`目录下可查看
+
+全局变量`variable.Amqp`返回`mq.RabbitMQInterface`接口，接口中的方法可查看源文件查看
+
+- 定义消费者`consumer`
+
+  定义`consumer`，需要实现`mq.ConsumerHandler`接口，该接口可查看`internal/mq/rabbitmq.go`文件中的定义，比如定义一个简单模式的消费者：
+
+  ```go
+  import (
+    "fmt"
+    "skeleton/internal/mq"
+
+    "github.com/streadway/amqp"
+  )
+
+  type FooConsumer struct{}
+
+  func (*FooConsumer) Option() mq.ConsumerOption {
+    return mq.ConsumerOption{
+      CommonOption: mq.CommonOption{
+        Mode:       mq.SimpleMode,
+        QueueName:  "foo",
+        Durable:    false,
+        AutoDelete: false,
+        Exclusive:  false,
+        NoWait:     false,
+        Args:       nil,
+      },
+      AutoAck: true,
+      NoLocal: false,
+    }
+  }
+
+  func (*FooConsumer) Exec(msg <-chan amqp.Delivery) {
+    for v := range msg {
+      fmt.Printf("consumer message:%v\n", string(v.Body))
+    }
+  }
+  ```
+
+  当我们定义好消费者后，需要通过`mq.InitConsumer`中的`InitConsumers() []ConsumerHandler`进行注册，骨架中注册文件已写死，项目启动时，会执行`InitConsumers`方法，查看`app/amqp/amqp.go`文件的代码：
+
+  ```go
+  package amqp
+
+  import (
+    "skeleton/app/amqp/consumer"
+    "skeleton/internal/mq"
+  )
+
+  type Amqp struct{}
+
+  func (*Amqp) InitConsumers() []mq.ConsumerHandler {
+    return []mq.ConsumerHandler{
+      &consumer.FooConsumer{},
+    }
+  }
+  ```
+
+- 发送消息`producer`
+
+  通过全局变量`variable.Amqp`的方法发送消息：
+
+  ```go
+  opts := mq.ProducerOption{
+		CommonOption: mq.CommonOption{
+			Mode:       mq.SimpleMode,
+			QueueName:  "foo",
+			Durable:    false,
+			AutoDelete: false,
+			Exclusive:  false,
+			NoWait:     false,
+			Args:       nil,
+		},
+		Message: amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte("test message"),
+		},
+		Mandatory: false,
+		Immediate: false,
+	}
+	variable.Amqp.Publish(opts)
+  ```
+
+#### RocketMQ
+
+> 注意：目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
 
 消息中间件的使用可参考`test/mq_test.go`单元测试
 

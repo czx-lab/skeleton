@@ -12,10 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"skeleton/internal/server/middleware"
 	appRouter "skeleton/internal/server/router"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type Http struct {
@@ -68,8 +69,7 @@ func (h *Http) setServerEngine() (engine *gin.Engine) {
 		gin.SetMode(gin.ReleaseMode)
 		gin.DefaultWriter = io.Discard
 		engine = gin.New()
-		engine.Use(gin.Logger())
-		h.SetMiddleware()
+		engine.Use(gin.Logger(), middleware.New(h.logger).Handle())
 	}
 	return
 }

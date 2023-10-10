@@ -21,14 +21,17 @@ type RabbitMQConnect struct {
 
 type RabbitMQInterface interface {
 	Publish(opts ProducerOption) error
-	Consume(handler ConsumerHandler)
-	Consumers(handlers ...ConsumerHandler)
+	Consumers(handler ...ConsumerHandler)
 	GetMQConn() *RabbitMQConnect
 }
 
 type ConsumerHandler interface {
 	Option() ConsumerOption
 	Exec(msg <-chan amqp.Delivery)
+}
+
+type InitConsumer interface {
+	InitConsumers() []ConsumerHandler
 }
 
 type Mode int
@@ -116,13 +119,6 @@ func NewRabbitMq(addr string) RabbitMQInterface {
 	return instance
 }
 
-func (r *RabbitMQ) Consumers(handlers ...ConsumerHandler) {
-	for _, handler := range handlers {
-		r.Consume(handler)
-	}
-	<-(chan any)(nil)
-}
-
 func (r *RabbitMQ) GetMQConn() *RabbitMQConnect {
 	rmq := r.pool.Get()
 	if rmq == nil {
@@ -151,7 +147,13 @@ func (r *RabbitMQ) Publish(opts ProducerOption) error {
 	)
 }
 
-func (r *RabbitMQ) Consume(consumer ConsumerHandler) {
+func (r *RabbitMQ) Consumers(consumers ...ConsumerHandler) {
+	for _, consumer := range consumers {
+		r.consumer(consumer)
+	}
+}
+
+func (r *RabbitMQ) consumer(consumer ConsumerHandler) {
 	rmq := r.GetMQConn()
 	opts := consumer.Option()
 	queueName, err := r.consumerQueueExchange(rmq, opts.CommonOption)

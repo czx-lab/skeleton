@@ -5,6 +5,7 @@ import (
 	AppEvent "skeleton/internal/event"
 	"time"
 
+	"skeleton/app/amqp"
 	"skeleton/app/event"
 	"skeleton/app/task"
 	"skeleton/internal/config"
@@ -37,6 +38,8 @@ func init() {
 	if err = InitMongo(); err != nil {
 		log.Fatal(consts.ErrorInitMongoDb)
 	}
+
+	// Redis
 	redisConfig := variable.Config.Get("Redis").(map[string]any)
 	if redisConfig != nil && !redisConfig["disabled"].(bool) {
 		variable.Redis = redis.New(
@@ -50,13 +53,17 @@ func init() {
 			redis.WithMaxIdleTime(time.Duration(redisConfig["maxidletime"].(int))),
 		)
 	}
+
+	// Crontab
 	if variable.Config.GetBool("Crontab.Enable") {
 		variable.Crontab = crontab.New()
 		variable.Crontab.AddFunc(task.New().Tasks()...)
 		variable.Crontab.Start()
 	}
+
+	// RocketMQ
 	if variable.Config.GetBool("MQ.Enable") {
-		if variable.MQ, err = mq.New(
+		if variable.RocketMQ, err = mq.New(
 			mq.WithNameServers(variable.Config.GetStringSlice("MQ.Servers")),
 			mq.WithConsumerGroupName(variable.Config.GetString("MQ.ConsumerGroupName")),
 			mq.WithProducerGroupName(variable.Config.GetString("MQ.ProducerGroupName")),
@@ -65,6 +72,17 @@ func init() {
 			log.Fatal(consts.ErrorInitMQ)
 		}
 	}
+
+	// Amqp
+	if variable.Config.GetBool("Amqp.Enable") {
+		variable.Amqp = mq.NewRabbitMq(variable.Config.GetString("Amqp.Addr"))
+		consumers := (&amqp.Amqp{}).InitConsumers()
+		if len(consumers) > 0 {
+			variable.Amqp.Consumers(consumers...)
+		}
+	}
+
+	// Event
 	variable.Event = AppEvent.New()
 	if err = (&event.Event{}).Init(); err != nil {
 		log.Fatal(consts.ErrorInitEvent)

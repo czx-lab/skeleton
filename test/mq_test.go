@@ -23,7 +23,7 @@ func TestMqProducer(t *testing.T) {
 		Topic: "foo-topic",
 		Body:  []byte("test message!"),
 	}
-	if err := variable.MQ.SendMessage(msg); err != nil {
+	if err := variable.RocketMQ.SendMessage(msg); err != nil {
 		t.Errorf("send fail: %s", err)
 		return
 	}
@@ -54,7 +54,7 @@ func TestMqConsumer(t *testing.T) {
 		}
 	}()
 	go func() {
-		if err := variable.MQ.Subscribe(&FooConsumer{}); err != nil {
+		if err := variable.RocketMQ.Subscribe(&FooConsumer{}); err != nil {
 			t.Errorf("fail:%s", err)
 		}
 	}()
@@ -86,7 +86,7 @@ func TestMqTransProducer(t *testing.T) {
 			t.Errorf("TestConfig filed:%v", err)
 		}
 	}()
-	rmq, err := variable.MQ.TransProducer(&TransListener{})
+	rmq, err := variable.RocketMQ.TransProducer(&TransListener{})
 	if err != nil {
 		t.Errorf("initialization filed:%v", err)
 		return
@@ -95,7 +95,7 @@ func TestMqTransProducer(t *testing.T) {
 		Topic: "foo-trans-topic",
 		Body:  []byte("test trans message"),
 	}
-	if err := variable.MQ.SendTransactionMessage(rmq, msg); err != nil {
+	if err := variable.RocketMQ.SendTransactionMessage(rmq, msg); err != nil {
 		t.Errorf("send fail: %s", err)
 		return
 	}
@@ -127,7 +127,7 @@ func TestMqTransConsumer(t *testing.T) {
 		}
 	}()
 	go func() {
-		if err := variable.MQ.Subscribe(&FooTransConsumer{}); err != nil {
+		if err := variable.RocketMQ.Subscribe(&FooTransConsumer{}); err != nil {
 			t.Errorf("fail:%s", err)
 		}
 	}()

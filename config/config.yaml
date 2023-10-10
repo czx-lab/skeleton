@@ -51,3 +51,7 @@ MQ:
   Retries: 1
   ProducerGroupName: "ProducerGroup"
   ConsumerGroupName: "ConsumerGroup"
+
+Amqp:
+  Enable: true
+  Addr: "amqp://guest:guest@127.0.0.1:5672/"

@@ -21,10 +21,13 @@ type RabbitMQConnect struct {
 
 type RabbitMQInterface interface {
 	Publish(opts ProducerOption) error
-	Consume(opts ConsumerOption, handler ConsumerHandler) error
+	Consume(handler ConsumerHandler)
+	Consumers(handlers ...ConsumerHandler)
+	GetMQConn() *RabbitMQConnect
 }
 
 type ConsumerHandler interface {
+	Option() ConsumerOption
 	Exec(msg <-chan amqp.Delivery)
 }
 
@@ -113,6 +116,13 @@ func NewRabbitMq(addr string) RabbitMQInterface {
 	return instance
 }
 
+func (r *RabbitMQ) Consumers(handlers ...ConsumerHandler) {
+	for _, handler := range handlers {
+		r.Consume(handler)
+	}
+	<-(chan any)(nil)
+}
+
 func (r *RabbitMQ) GetMQConn() *RabbitMQConnect {
 	rmq := r.pool.Get()
 	if rmq == nil {
@@ -141,11 +151,13 @@ func (r *RabbitMQ) Publish(opts ProducerOption) error {
 	)
 }
 
-func (r *RabbitMQ) Consume(opts ConsumerOption, handler ConsumerHandler) error {
+func (r *RabbitMQ) Consume(consumer ConsumerHandler) {
 	rmq := r.GetMQConn()
+	opts := consumer.Option()
 	queueName, err := r.consumerQueueExchange(rmq, opts.CommonOption)
 	if err != nil {
-		return err
+		r.pool.Put(rmq)
+		panic(err)
 	}
 	msgs, err := rmq.channel.Consume(
 		queueName,
@@ -157,13 +169,13 @@ func (r *RabbitMQ) Consume(opts ConsumerOption, handler ConsumerHandler) error {
 		opts.Args,
 	)
 	if err != nil {
-		return err
+		r.pool.Put(rmq)
+		panic(err)
 	}
 	go func() {
 		defer r.pool.Put(rmq)
-		handler.Exec(msgs)
+		consumer.Exec(msgs)
 	}()
-	return nil
 }
 
 func (r *RabbitMQ) queueDeclare(rmq *RabbitMQConnect, opts CommonOption) (amqp.Queue, error) {

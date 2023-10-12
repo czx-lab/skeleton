@@ -64,5 +64,8 @@ Elastic:
     Secret: "admin"
     Sniffer: true
     Gzip: true
+    MaxIdle: 10
     # 单位（秒）
     Healthcheck: 5
+    # 单位（秒）
+    Timeout: 5

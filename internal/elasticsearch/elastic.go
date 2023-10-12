@@ -11,7 +11,7 @@ import (
 
 type Elasticsearch struct {
 	optins []elastic.ClientOptionFunc
-	pool   sync.Pool
+	conn   *elastic.Client
 }
 
 type Document struct {
@@ -28,34 +28,18 @@ type Index struct {
 var once sync.Once
 var instance *Elasticsearch
 
-func NewElastic(optins ...elastic.ClientOptionFunc) *Elasticsearch {
+func NewElastic(optins ...elastic.ClientOptionFunc) (*Elasticsearch, error) {
+	client, err := elastic.NewClient(optins...)
+	if err != nil {
+		return nil, err
+	}
 	once.Do(func() {
 		instance = &Elasticsearch{
 			optins: optins,
-			pool: sync.Pool{
-				New: func() any {
-					client, err := elastic.NewClient(optins...)
-					if err != nil {
-						panic(err)
-					}
-					return client
-				},
-			},
+			conn:   client,
 		}
 	})
-	return instance
-}
-
-func (e *Elasticsearch) GetConn() *elastic.Client {
-	client := e.pool.Get()
-	if client == nil {
-		client, err := elastic.NewClient(e.optins...)
-		if err != nil {
-			panic(err)
-		}
-		return client
-	}
-	return client.(*elastic.Client)
+	return instance, nil
 }
 
 func (e *Elasticsearch) CreateIndex(index Index) (*elastic.IndicesCreateResult, error) {
@@ -66,9 +50,7 @@ func (e *Elasticsearch) CreateIndex(index Index) (*elastic.IndicesCreateResult, 
 	if exist {
 		return nil, errors.New("index already exists")
 	}
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.CreateIndex(index.Name).BodyString(index.Mapping).Do(context.Background())
+	return e.conn.CreateIndex(index.Name).BodyString(index.Mapping).Do(context.Background())
 }
 
 func (e *Elasticsearch) DelIndex(name string) (*elastic.IndicesDeleteResponse, error) {
@@ -77,17 +59,13 @@ func (e *Elasticsearch) DelIndex(name string) (*elastic.IndicesDeleteResponse, e
 		return nil, err
 	}
 	if exist {
-		conn := e.GetConn()
-		defer e.pool.Put(conn)
-		return conn.DeleteIndex(name).Do(context.Background())
+		return e.conn.DeleteIndex(name).Do(context.Background())
 	}
 	return nil, errors.New("index does not exist")
 }
 
 func (e *Elasticsearch) HasIndex(name string) (bool, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.IndexExists(name).Do(context.Background())
+	return e.conn.IndexExists(name).Do(context.Background())
 }
 
 func (e *Elasticsearch) CreateDoc(doc Document) (*elastic.IndexResponse, error) {
@@ -98,9 +76,7 @@ func (e *Elasticsearch) CreateDoc(doc Document) (*elastic.IndexResponse, error) 
 	if !exist {
 		return nil, errors.New("index does not exist")
 	}
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.Index().Index(doc.Index).Id(doc.Id).BodyJson(doc.Body).Do(context.Background())
+	return e.conn.Index().Index(doc.Index).Id(doc.Id).BodyJson(doc.Body).Do(context.Background())
 }
 
 type createRes struct {
@@ -136,12 +112,8 @@ func (e *Elasticsearch) BatchCreateDoc(docs []Document) (map[string]int, error) 
 }
 
 func (e *Elasticsearch) createDoc(wg *sync.WaitGroup, index string, doc []Document, res chan createRes) {
-	conn := e.GetConn()
-	defer func() {
-		wg.Done()
-		e.pool.Put(conn)
-	}()
-	bulk := conn.Bulk().Index(index)
+	defer wg.Done()
+	bulk := e.conn.Bulk().Index(index)
 	requests := make([]elastic.BulkableRequest, len(doc))
 	for _, item := range doc {
 		requests = append(requests, elastic.NewBulkIndexRequest().Id(item.Id).Doc(item.Body))
@@ -177,21 +149,15 @@ type UpdateDoc struct {
 }
 
 func (e *Elasticsearch) BatchUpdateDoc(update Document) (*elastic.UpdateResponse, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.Update().Index(update.Index).Id(update.Id).Doc(update.Body).Do(context.Background())
+	return e.conn.Update().Index(update.Index).Id(update.Id).Doc(update.Body).Do(context.Background())
 }
 
 func (e *Elasticsearch) UpdateDocById(update UpdateDoc) (*elastic.UpdateResponse, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.Update().Index(update.Index).Id(update.Id).Script(update.Script).Do(context.Background())
+	return e.conn.Update().Index(update.Index).Id(update.Id).Script(update.Script).Do(context.Background())
 }
 
 func (e *Elasticsearch) UpdateDoc(update UpdateDoc) (*elastic.BulkIndexByScrollResponse, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.UpdateByQuery(update.Document.Index).Query(update.Query).Script(update.Script).ProceedOnVersionConflict().Do(context.Background())
+	return e.conn.UpdateByQuery(update.Document.Index).Query(update.Query).Script(update.Script).ProceedOnVersionConflict().Do(context.Background())
 }
 
 type SearchQuery struct {
@@ -213,9 +179,7 @@ func (e *Elasticsearch) BatchQueryDoc(search SearchQuery) (*elastic.SearchResult
 	if len(search.Index) < 1 {
 		return nil, errors.New("index cannot be empty")
 	}
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	query := conn.Search().Index(search.Index...)
+	query := e.conn.Search().Index(search.Index...)
 	if search.Query != nil {
 		query.Query(search.Query)
 	}
@@ -235,13 +199,11 @@ func (e *Elasticsearch) BatchQueryDocByIds(querys ...BatchQuery) ([][]byte, erro
 	if len(querys) == 0 {
 		return nil, errors.New("index id is empty")
 	}
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
 	items := make([]*elastic.MultiGetItem, len(querys))
 	for _, item := range querys {
 		items = append(items, elastic.NewMultiGetItem().Index(item.Index).Id(item.Id))
 	}
-	result, err := conn.MultiGet().Add(items...).Do(context.Background())
+	result, err := e.conn.MultiGet().Add(items...).Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -254,9 +216,7 @@ func (e *Elasticsearch) BatchQueryDocByIds(querys ...BatchQuery) ([][]byte, erro
 }
 
 func (e *Elasticsearch) QueryDocById(index, id string) ([]byte, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	result, err := conn.Get().Index(index).Id(id).Do(context.Background())
+	result, err := e.conn.Get().Index(index).Id(id).Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -276,13 +236,9 @@ type QueryDel struct {
 }
 
 func (e *Elasticsearch) DelDocById(query BatchQuery) (*elastic.DeleteResponse, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.Delete().Index(query.Index).Id(query.Id).Do(context.Background())
+	return e.conn.Delete().Index(query.Index).Id(query.Id).Do(context.Background())
 }
 
 func (e *Elasticsearch) DelQueryDoc(query QueryDel) (*elastic.BulkIndexByScrollResponse, error) {
-	conn := e.GetConn()
-	defer e.pool.Put(conn)
-	return conn.DeleteByQuery(query.Index).Query(query.Query).ProceedOnVersionConflict().Do(context.Background())
+	return e.conn.DeleteByQuery(query.Index).Query(query.Query).ProceedOnVersionConflict().Do(context.Background())
 }

@@ -40,7 +40,9 @@ func init() {
 	}
 
 	// Elastic
-	variable.Elastic = InitElastic()
+	if variable.Elastic, err = InitElastic(); err != nil {
+		log.Fatal(consts.ErrorInitElastic)
+	}
 
 	// Redis
 	redisConfig := variable.Config.Get("Redis").(map[string]any)

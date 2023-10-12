@@ -10,8 +10,7 @@ import (
 )
 
 type Elasticsearch struct {
-	optins []elastic.ClientOptionFunc
-	conn   *elastic.Client
+	conn *elastic.Client
 }
 
 type Document struct {
@@ -29,14 +28,13 @@ var once sync.Once
 var instance *Elasticsearch
 
 func NewElastic(optins ...elastic.ClientOptionFunc) (*Elasticsearch, error) {
-	client, err := elastic.NewClient(optins...)
-	if err != nil {
-		return nil, err
-	}
 	once.Do(func() {
+		client, err := elastic.NewClient(optins...)
+		if err != nil {
+			panic(err)
+		}
 		instance = &Elasticsearch{
-			optins: optins,
-			conn:   client,
+			conn: client,
 		}
 	})
 	return instance, nil

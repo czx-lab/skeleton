@@ -8,4 +8,5 @@ const (
 	ErrorInitMongoDb string = "初始化MongoDb实例失败"
 	ErrorInitMQ      string = "初始化消息队列实例失败"
 	ErrorInitEvent   string = "事件注册执行失败"
+	ErrorInitElastic string = "初始化Elastic执行失败"
 )

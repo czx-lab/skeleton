@@ -3,6 +3,7 @@ package variable
 import (
 	"log"
 	"os"
+	"skeleton/internal/elasticsearch"
 	"skeleton/internal/event"
 	"skeleton/internal/mongo"
 	"strings"
@@ -27,6 +28,7 @@ var (
 	Crontab  *crontab.Crontab
 	Amqp     mq.RabbitMQInterface
 	Event    *event.Event
+	Elastic  *elasticsearch.Elasticsearch
 
 	// 目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
 	RocketMQ mq.Interface

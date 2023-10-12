@@ -39,6 +39,9 @@ func init() {
 		log.Fatal(consts.ErrorInitMongoDb)
 	}
 
+	// Elastic
+	variable.Elastic = InitElastic()
+
 	// Redis
 	redisConfig := variable.Config.Get("Redis").(map[string]any)
 	if redisConfig != nil && !redisConfig["disabled"].(bool) {

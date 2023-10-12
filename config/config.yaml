@@ -55,3 +55,14 @@ MQ:
 Amqp:
   Enable: true
   Addr: "amqp://guest:guest@127.0.0.1:5672/"
+
+Elastic:
+    Enable: true
+    Urls:
+      - "http://127.0.0.1:9200"
+    User: "admin"  
+    Secret: "admin"
+    Sniffer: true
+    Gzip: true
+    # 单位（秒）
+    Healthcheck: 5

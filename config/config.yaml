@@ -45,7 +45,7 @@ Crontab:
   Enable: true
 
 MQ:
-  Enable: true
+  Enable: false
   Servers:
     - "127.0.0.1:9876"
   Retries: 1
@@ -53,11 +53,11 @@ MQ:
   ConsumerGroupName: "ConsumerGroup"
 
 Amqp:
-  Enable: true
+  Enable: false
   Addr: "amqp://guest:guest@127.0.0.1:5672/"
 
 Elastic:
-    Enable: true
+    Enable: false
     Urls:
       - "http://127.0.0.1:9200"
     User: "admin"  

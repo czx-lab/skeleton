@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	command.New().AddCommand(
-		&CustomCommand.FooCommand{},
-	).Execute()
+	cmd := command.New()
+	cmd.AddCommand(CustomCommand.NewCommand(cmd.Root())).Execute()
 }

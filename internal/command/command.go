@@ -3,13 +3,15 @@ package command
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
+
+	"github.com/spf13/cobra"
 )
 
 type Command struct {
-	root *cobra.Command
+	root            *cobra.Command
+	globalFlagsFunc func()
 }
 
 type Interface interface {
@@ -17,16 +19,18 @@ type Interface interface {
 	Flags(*cobra.Command)
 }
 
+type CommandInterface interface {
+	GlobalFlags()
+	RegisterCmds() []Interface
+}
+
 func New() *Command {
 	root := &Command{
 		root: &cobra.Command{
 			Use:   "command",
-			Short: "A brief description of your application.",
-			Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-Cobra is a CLI library for Go that empowers applications. 
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+			Short: "skeleton command line.",
+			Long: `this command line is an encapsulation of the github.com/spf13/cobra library. 
+For the definition of flag, please refer to the official library documentation.`,
 			Run: func(cmd *cobra.Command, args []string) {
 				Error(cmd, args, errors.New("unrecognized command"))
 			},
@@ -35,11 +39,18 @@ to quickly create a Cobra application.`,
 	return root
 }
 
-func (c *Command) AddCommand(commands ...Interface) *Command {
+func (c *Command) Root() *cobra.Command {
+	return c.root
+}
+
+func (c *Command) AddCommand(cmd CommandInterface) *Command {
+	cmd.GlobalFlags()
+	commands := cmd.RegisterCmds()
 	var cobras []*cobra.Command
 	for _, command := range commands {
-		cobras = append(cobras, command.Command())
-		command.Flags(c.root)
+		cmd := command.Command()
+		command.Flags(cmd)
+		cobras = append(cobras, cmd)
 	}
 	c.root.AddCommand(cobras...)
 	return c

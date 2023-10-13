@@ -1,4 +1,4 @@
-package method
+package extend
 
 import "gorm.io/gen"
 

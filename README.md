@@ -409,9 +409,17 @@ func (d *DemoController) Index(ctx *gin.Context) {
 
 #### 命令行
 
-基于`github.com/spf13/cobra`封装
+基于`github.com/spf13/cobra`封装，骨架实现了基于gorm的gen代码生成器命令行。
 
-- 定义命令
+- 生成数据库model与dao方法命令
+
+  ```
+  go run cmd/cli/main.go gen:model
+  ```
+
+  > 关于代码生成命令行的配置，可参考`app/command/command.go`文件下的`newGenCommand() AppCommand.Interface`方法
+
+- 自定义定义命令
 
   在`app/command`目录中定义自己的命令，比如自定义一个输出`success ok`的命令
 
@@ -438,29 +446,31 @@ func (d *DemoController) Index(ctx *gin.Context) {
   }
   
   func (f *FooCommand) Flags(root *cobra.Command) {
-  	root.PersistentFlags().String("name", "", "命令参数")
+  	root.Flags().StringP("name", "n", "world!", "命令参数")
   }
   ```
 
 - 注册命令
 
-  需要在`cmd/cli/cli.go`中的`main`方法内注册自定义命令。
+  需要在`app/command/command.go`中的`RegisterCmds() []AppCommand.Interface`方法内注册自定义命令,具体使用方法可查看原文件`app/command/command.go`
 
-  
+- 全局标志  
+
+  需要在`app/command/command.go`中的`GlobalFlags()`方法内命令,具体使用方法可查看原文件`app/command/command.go`
 
 - 执行命令 
 
   ```go
-  go run cmd/cli/cli.go foo --name ok
+  go run cmd/cli/main.go foo --name ok
   ```
 
 - 查看命令信息
 
   ```go
-  go run cmd/cli/cli.go help
+  go run cmd/cli/main.go help
   
   // 或者
-  go run cmd/cli/cli.go foo --help
+  go run cmd/cli/main.go foo --help
   ```
   
 #### 定时任务

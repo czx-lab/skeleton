@@ -32,6 +32,6 @@ to quickly create a Cobra application.`,
 }
 
 func (*FooCommand) Flags(root *cobra.Command) {
-	root.PersistentFlags().String("name", "", "Say hello to someone")
-	root.PersistentFlags().BoolP("time", "t", false, "Add time info to hello")
+	root.Flags().StringP("name", "n", "", "Say hello to someone")
+	root.Flags().BoolP("time", "t", false, "Add time info to hello")
 }

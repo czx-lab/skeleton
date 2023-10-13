@@ -4,26 +4,24 @@
 
 package model
 
-import (
-	"time"
-)
+import "skeleton/app/extend"
 
 const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID        int32     `gorm:"column:id;type:int(11) unsigned;primaryKey;autoIncrement:true" json:"id"`
-	Nickname  string    `gorm:"column:nickname;type:varchar(255);not null;comment:昵称" json:"nickname"` // 昵称
-	Name      string    `gorm:"column:name;type:varchar(255);not null" json:"name"`
-	Avatar    string    `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"` // 头像
-	Mobile    string    `gorm:"column:mobile;type:char(11);not null;comment:手机号" json:"mobile"`    // 手机号
-	Role      string    `gorm:"column:role;type:char(11);not null" json:"role"`
-	Age       int32     `gorm:"column:age;type:int(10) unsigned;not null" json:"age"`
-	Intro     string    `gorm:"column:intro;type:varchar(255);not null;comment:描述" json:"intro"`                                  // 描述
-	Sex       bool      `gorm:"column:sex;type:tinyint(1) unsigned;not null;comment:性别【0：男：1女2：保密】" json:"sex"`                   // 性别【0：男：1女2：保密】
-	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"createdAt"` // 创建时间
-	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:修改时间" json:"-"`         // 修改时间
-	Address   string    `gorm:"column:address;type:varchar(50)" json:"address"`
+	ID        int32            `gorm:"column:id;type:int(11) unsigned;primaryKey;autoIncrement:true" json:"id"`
+	Nickname  string           `gorm:"column:nickname;type:varchar(255);not null;comment:昵称" json:"nickname"` // 昵称
+	Name      string           `gorm:"column:name;type:varchar(255);not null" json:"name"`
+	Avatar    string           `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"` // 头像
+	Mobile    string           `gorm:"column:mobile;type:char(11);not null;comment:手机号" json:"mobile"`    // 手机号
+	Role      string           `gorm:"column:role;type:char(11);not null" json:"role"`
+	Age       int32            `gorm:"column:age;type:int(10) unsigned;not null" json:"age"`
+	Intro     string           `gorm:"column:intro;type:varchar(255);not null;comment:描述" json:"intro"`                                    // 描述
+	Sex       int8             `gorm:"column:sex;type:tinyint(2) unsigned;not null;comment:性别【0：男：1女2：保密】" json:"sex"`                     // 性别【0：男：1女2：保密】
+	CreatedAt extend.LocalTime `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
+	UpdatedAt extend.LocalTime `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:修改时间" json:"updated_at"` // 修改时间
+	Address   string           `gorm:"column:address;type:varchar(50)" json:"address"`
 }
 
 // TableName User's table name

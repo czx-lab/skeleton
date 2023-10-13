@@ -14,6 +14,7 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gen/helper"
 
 	"gorm.io/plugin/dbresolver"
 
@@ -36,9 +37,9 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Role = field.NewString(tableName, "role")
 	_user.Age = field.NewInt32(tableName, "age")
 	_user.Intro = field.NewString(tableName, "intro")
-	_user.Sex = field.NewBool(tableName, "sex")
-	_user.CreatedAt = field.NewTime(tableName, "created_at")
-	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_user.Sex = field.NewInt8(tableName, "sex")
+	_user.CreatedAt = field.NewField(tableName, "created_at")
+	_user.UpdatedAt = field.NewField(tableName, "updated_at")
 	_user.Address = field.NewString(tableName, "address")
 
 	_user.fillFieldMap()
@@ -58,9 +59,9 @@ type user struct {
 	Role      field.String
 	Age       field.Int32
 	Intro     field.String // 描述
-	Sex       field.Bool   // 性别【0：男：1女2：保密】
-	CreatedAt field.Time   // 创建时间
-	UpdatedAt field.Time   // 修改时间
+	Sex       field.Int8   // 性别【0：男：1女2：保密】
+	CreatedAt field.Field  // 创建时间
+	UpdatedAt field.Field  // 修改时间
 	Address   field.String
 
 	fieldMap map[string]field.Expr
@@ -86,9 +87,9 @@ func (u *user) updateTableName(table string) *user {
 	u.Role = field.NewString(table, "role")
 	u.Age = field.NewInt32(table, "age")
 	u.Intro = field.NewString(table, "intro")
-	u.Sex = field.NewBool(table, "sex")
-	u.CreatedAt = field.NewTime(table, "created_at")
-	u.UpdatedAt = field.NewTime(table, "updated_at")
+	u.Sex = field.NewInt8(table, "sex")
+	u.CreatedAt = field.NewField(table, "created_at")
+	u.UpdatedAt = field.NewField(table, "updated_at")
 	u.Address = field.NewString(table, "address")
 
 	u.fillFieldMap()
@@ -199,6 +200,10 @@ type IUserDo interface {
 	FindAll() (result []map[string]interface{}, err error)
 	FindOne() (result map[string]interface{})
 	FindAddress() (result model.User, err error)
+	FindByID(id int) (result model.User, err error)
+	FindAdult() (result []model.User, err error)
+	FindByRole(role string, id int)
+	UpdateUserName(name string, id int) (err error)
 }
 
 // Where("name=@name and age=@age")
@@ -285,6 +290,99 @@ func (u userDo) FindAddress() (result model.User, err error) {
 
 	var executeSQL *gorm.DB
 	executeSQL = u.UnderlyingDB().Raw(generateSQL.String()).Take(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
+// where(id=@id)
+func (u userDo) FindByID(id int) (result model.User, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, id)
+	generateSQL.WriteString("id=? ")
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Where(generateSQL.String(), params...).Take(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
+// select * from users where age>18
+func (u userDo) FindAdult() (result []model.User, err error) {
+	var generateSQL strings.Builder
+	generateSQL.WriteString("select * from users where age>18 ")
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Raw(generateSQL.String()).Find(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
+// select * from @@table
+//
+//	{{where}}
+//		{{if role=="user"}}
+//			id=@id
+//		{{else if role=="admin"}}
+//			role="user" or rule="normal-admin"
+//		{{else}}
+//			role="user" or role="normal-admin" or role="admin"
+//		{{end}}
+//	{{end}}
+func (u userDo) FindByRole(role string, id int) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	generateSQL.WriteString("select * from user ")
+	var whereSQL0 strings.Builder
+	if role == "user" {
+		params = append(params, id)
+		whereSQL0.WriteString("id=? ")
+	} else if role == "admin" {
+		whereSQL0.WriteString("role=\"user\" or rule=\"normal-admin\" ")
+	} else {
+		whereSQL0.WriteString("role=\"user\" or role=\"normal-admin\" or role=\"admin\" ")
+	}
+	helper.JoinWhereBuilder(&generateSQL, whereSQL0)
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Exec(generateSQL.String(), params...) // ignore_security_alert
+	_ = executeSQL
+
+	return
+}
+
+// update users
+//
+//	{{set}}
+//		update_time=now(),
+//		{{if name != ""}}
+//			name=@name
+//		{{end}}
+//	{{end}}
+//
+// where id=@id
+func (u userDo) UpdateUserName(name string, id int) (err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	generateSQL.WriteString("update users ")
+	var setSQL0 strings.Builder
+	setSQL0.WriteString("update_time=now(), ")
+	if name != "" {
+		params = append(params, name)
+		setSQL0.WriteString("name=? ")
+	}
+	helper.JoinSetBuilder(&generateSQL, setSQL0)
+	params = append(params, id)
+	generateSQL.WriteString("where id=? ")
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Exec(generateSQL.String(), params...) // ignore_security_alert
 	err = executeSQL.Error
 
 	return

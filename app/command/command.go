@@ -1,12 +1,13 @@
 package command
 
 import (
-	"skeleton/app/method"
+	"skeleton/app/extend"
 	AppCommand "skeleton/internal/command"
 	"skeleton/internal/variable"
 
 	"github.com/spf13/cobra"
 	"gorm.io/gen"
+	"gorm.io/gorm"
 )
 
 type Command struct {
@@ -48,8 +49,20 @@ func newGenCommand() AppCommand.Interface {
 		AppCommand.WithDB(variable.DB),
 		AppCommand.WithTables([]string{"user"}),
 		AppCommand.WithIgnoreFileds([]string{"updated_at"}),
-		AppCommand.WithMethods(map[string]any{
-			"user": func(method.Method) {},
-		}),
+		AppCommand.WithMethods(
+			map[string][]any{
+				"user": {
+					func(extend.Method) {},
+					func(extend.UserMethod) {},
+				},
+			},
+		),
+		AppCommand.WithDataMap(
+			map[string]func(detailType gorm.ColumnType) (dataType string){
+				"tinyint":   func(detailType gorm.ColumnType) (dataType string) { return "int8" },
+				"timestamp": func(detailType gorm.ColumnType) (dataType string) { return "extend.LocalTime" },
+				"decimal":   func(detailType gorm.ColumnType) (dataType string) { return "extend.Decimal" },
+			},
+		),
 	)
 }

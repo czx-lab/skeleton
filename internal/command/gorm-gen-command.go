@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"skeleton/internal/utils"
 	"strings"
@@ -17,7 +16,7 @@ type GormGenCommand struct {
 	config       gen.Config
 	tables       []string
 	ignoreFileds []string
-	methods      map[string]any
+	methods      map[string][]any
 	dataMap      map[string]func(detailType gorm.ColumnType) (dataType string)
 }
 
@@ -58,42 +57,32 @@ func (g *GormGenCommand) genModel() error {
 	})
 	fieldOpts := []gen.ModelOpt{jsonField}
 	models := make([]any, len(g.tables))
-	methods := make(map[string]any)
 	if len(g.tables) > 0 {
 		for _, table := range g.tables {
 			model := g.generator.GenerateModelAs(table, utils.CaseToCamel(table), fieldOpts...)
 			models = append(models, model)
-			if _, ok := g.methods[table]; ok {
-				methods[table] = model
-			}
 		}
 	} else {
 		models = g.generator.GenerateAllTable(fieldOpts...)
 	}
 	g.generator.ApplyBasic(models...)
-	if err := g.genModelMethod(methods); err != nil {
+	if err := g.genModelMethod(); err != nil {
 		return err
 	}
 	g.generator.Execute()
 	return nil
 }
 
-func (g *GormGenCommand) genModelMethod(methods map[string]any) error {
+func (g *GormGenCommand) genModelMethod() error {
 	if g.methods == nil {
 		return nil
 	}
-	for table, method := range g.methods {
-		if method == nil {
-			return errors.New("Func are required")
+	for table, methods := range g.methods {
+		if len(methods) == 0 || table == "" {
+			continue
 		}
-		if len(methods) == 0 {
+		for _, method := range methods {
 			g.generator.ApplyInterface(method, g.generator.GenerateModel(table))
-		} else {
-			if model, ok := methods[table]; ok {
-				g.generator.ApplyInterface(method, model)
-			} else {
-				g.generator.ApplyInterface(method, g.generator.GenerateModel(table))
-			}
 		}
 	}
 	g.generator.Execute()
@@ -135,13 +124,13 @@ func WithIgnoreFileds(ignoreFileds []string) OptionFunc {
 	}
 }
 
-func WithMethods(methods map[string]any) OptionFunc {
+func WithMethods(methods map[string][]any) OptionFunc {
 	return func(ggc *GormGenCommand) {
 		ggc.methods = methods
 	}
 }
 
-func WithdataMap(dataMap map[string]func(detailType gorm.ColumnType) (dataType string)) OptionFunc {
+func WithDataMap(dataMap map[string]func(detailType gorm.ColumnType) (dataType string)) OptionFunc {
 	return func(ggc *GormGenCommand) {
 		ggc.dataMap = dataMap
 	}

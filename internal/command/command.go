@@ -10,8 +10,7 @@ import (
 )
 
 type Command struct {
-	root            *cobra.Command
-	globalFlagsFunc func()
+	root *cobra.Command
 }
 
 type Interface interface {

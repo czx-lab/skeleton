@@ -7,27 +7,45 @@ import (
 	"skeleton/internal/event"
 )
 
-type DemoEventEntry struct {
+type DemoEvent1 struct {
 }
 
-func (*DemoEventEntry) EventName() string {
-	return "demo-event"
+func (*DemoEvent1) GetData() any {
+	return "DemoEvent1"
 }
 
-func (*DemoEventEntry) GetData() any {
-	return 12
+type DemoEvent2 struct {
 }
 
-type DemoEventEntryListen struct {
+func (*DemoEvent2) GetData() any {
+	return "DemoEvent2"
 }
 
-func (*DemoEventEntryListen) Listen() event.EventInterface {
-	return &DemoEventEntry{}
+type DemoEventEntryListen1 struct {
 }
 
-func (*DemoEventEntryListen) Process(data any) (any, error) {
-	fmt.Println(data)
-	return "success", nil
+func (*DemoEventEntryListen1) Listen() []event.EventInterface {
+	return []event.EventInterface{
+		&DemoEvent2{},
+		&DemoEvent1{},
+	}
+}
+
+func (*DemoEventEntryListen1) Process(data any) {
+	fmt.Printf("Execute listener => %s function Process, event => %v\n", "DemoEventEntryListen1", data)
+}
+
+type DemoEventEntryListen2 struct {
+}
+
+func (*DemoEventEntryListen2) Listen() []event.EventInterface {
+	return []event.EventInterface{
+		&DemoEvent1{},
+	}
+}
+
+func (*DemoEventEntryListen2) Process(data any) {
+	fmt.Printf("Execute listener => %s function Process, event => %v\n", "DemoEventEntryListen2", data)
 }
 
 func TestEvent(t *testing.T) {
@@ -36,13 +54,18 @@ func TestEvent(t *testing.T) {
 			t.Log(err)
 		}
 	}()
-	eventClass := event.New()
-	if err := eventClass.Register(&DemoEventEntryListen{}); err != nil {
+	evt := event.New()
+	if err := evt.Register(&DemoEventEntryListen1{}, &DemoEventEntryListen2{}); err != nil {
 		t.Log(err)
 	}
-	if result, err := eventClass.Dispatch(&DemoEventEntry{}); err != nil {
+
+	// sync
+	if err := evt.Dispatch(&DemoEvent2{}); err != nil {
 		t.Log(err)
-	} else {
-		t.Log(result)
+	}
+
+	// async
+	if err := evt.DispatchAsync(&DemoEvent1{}); err != nil {
+		t.Log(err)
 	}
 }

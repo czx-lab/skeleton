@@ -9,12 +9,12 @@ import (
 type FooListen struct {
 }
 
-func (*FooListen) Listen() event.EventInterface {
-	return &event2.FooEvent{
-		Name: "测试",
+func (*FooListen) Listen() []event.EventInterface {
+	return []event.EventInterface{
+		&event2.FooEvent{},
 	}
 }
 
-func (*FooListen) Process(data any) (any, error) {
-	return fmt.Sprintf("%v --> %s", data, "exec FooListen.Process"), nil
+func (*FooListen) Process(data any) {
+	fmt.Printf("%v --> %s \n", data, "exec FooListen.Process")
 }

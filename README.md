@@ -313,10 +313,6 @@ Amqp:
   
   type DemoEvent struct {}
   
-  func (d *DemoEvent) EventName() string {
-      return "demo-event"
-  }
-  
   func (d *DemoEvent) GetData() any {
       return "demo param"
   }
@@ -340,12 +336,13 @@ Amqp:
   type DemoEventListen struct {
   }
   
-  func (*DemoEventListen) Listen() event.EventInterface {
-  	return &event2.DemoEvent{}
+  // 可同时监听多个事件
+  func (*DemoEventListen) Listen() []event.EventInterface {
+  	return []event.EventInterface{&event2.DemoEvent{}}
   }
   
-  func (*DemoEventListen) Process(data any) (any, error) {
-  	return fmt.Sprintf("%v --> %s", data, "exec DemoEventListen.Process"), nil
+  func (*DemoEventListen) Process(data any) {
+  	fmt.Printf("%v --> %s", data, "exec DemoEventListen.Process")
   }
   ```
 
@@ -358,7 +355,11 @@ Amqp:
 - 调用事件执行
 
   ```go
+  // 同步
   variable.Event.Dispatch(&entity.DemoEvent{})
+
+  // 异步
+  variable.Event.DispatchAsync(&entity.DemoEvent{})
   ```
 
 #### 验证器

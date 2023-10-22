@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"net/http"
-	"skeleton/app/amqp/producer"
 	"skeleton/app/event/entity"
 	"skeleton/app/request"
 	"skeleton/internal/variable"
@@ -17,12 +16,13 @@ type Index struct {
 
 func (i *Index) Hello(ctx *gin.Context) {
 	var param request.Foo
-	data, err := variable.Event.Dispatch(&entity.FooEvent{
+	if err := variable.Event.Dispatch(&entity.FooEvent{
 		Name: "hello",
-	})
-	fmt.Println(data, err)
+	}); err != nil {
+		fmt.Println(err)
+	}
 
-	(&producer.FooProducer{}).SendMessage([]byte("foo message"))
+	// (&producer.FooProducer{}).SendMessage([]byte("foo message"))
 
 	if err := i.base.Validate(ctx, &param); err == nil {
 		fmt.Println(param)

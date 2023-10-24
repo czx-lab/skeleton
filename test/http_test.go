@@ -1,11 +1,13 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"skeleton/internal/server"
 	"skeleton/router"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestHttp(t *testing.T) {
@@ -14,10 +16,12 @@ func TestHttp(t *testing.T) {
 			t.Log(err)
 		}
 	}()
-	http := server.New(server.WithPort(":8888"), server.WithMode(gin.DebugMode))
-	http.SetRouters(router.New(http))
-	if err := http.Run(); err != nil {
-		t.Log(err)
-	}
-	t.Log("success")
+	http := server.New(
+		server.WithPort(":8888"),
+		server.WithMode(gin.DebugMode),
+		server.WithAfterFunc(func() {
+			fmt.Println("启动之后执行")
+		}),
+	)
+	http.SetRouters(router.New(http)).Run()
 }

@@ -20,11 +20,12 @@ import (
 )
 
 type Http struct {
-	engine *gin.Engine
-	logger *zap.Logger
-	router *appRouter.Router
-	mode   string
-	port   string
+	engine    *gin.Engine
+	logger    *zap.Logger
+	router    *appRouter.Router
+	afterFunc func()
+	mode      string
+	port      string
 }
 
 type HttpServer interface {
@@ -53,8 +54,9 @@ func New(opts ...Option) *Http {
 	return httpClass
 }
 
-func (h *Http) SetRouters(routers appRouter.Interface) {
+func (h *Http) SetRouters(routers appRouter.Interface) *Http {
 	h.router.AddRouter(routers)
+	return h
 }
 
 func (h *Http) GetServerEngine() *gin.Engine {
@@ -90,7 +92,7 @@ func (h *Http) defaultOption() {
 	}
 }
 
-func (h *Http) Run() error {
+func (h *Http) Run() {
 	srv := http.Server{
 		Addr:    h.port,
 		Handler: h.engine,
@@ -104,13 +106,19 @@ func (h *Http) Run() error {
 			}
 		}
 	}()
+	h.afterExec()
 	h.ListenSignal(&srv)
-	return nil
+}
+
+func (h *Http) afterExec() {
+	if h.afterFunc != nil {
+		h.afterFunc()
+	}
 }
 
 func (h *Http) ListenSignal(srv *http.Server) {
-	quit := make(chan os.Signal)
-	signal.Notify(quit, os.Interrupt, os.Kill, syscall.SIGTERM)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 	if h.logger != nil {
 		h.logger.Info("Shutdown Server!")
@@ -148,5 +156,11 @@ func WithLogger(logger *zap.Logger) Option {
 func WithPort(port string) Option {
 	return OptionFunc(func(http *Http) {
 		http.port = port
+	})
+}
+
+func WithAfterFunc(afterFunc func()) Option {
+	return OptionFunc(func(http *Http) {
+		http.afterFunc = afterFunc
 	})
 }

@@ -41,7 +41,8 @@ func NewGenCommand(opts ...OptionInterface) Interface {
 	return g
 }
 
-func (g *GormGenCommand) genModel() error {
+func (g *GormGenCommand) genModel() {
+	g.genModelMethod()
 	if g.dataMap != nil {
 		g.generator.WithDataTypeMap(g.dataMap)
 	}
@@ -53,7 +54,7 @@ func (g *GormGenCommand) genModel() error {
 				}
 			}
 		}
-		return utils.LowerCamelCase(columnName)
+		return columnName
 	})
 	fieldOpts := []gen.ModelOpt{jsonField}
 	models := make([]any, len(g.tables))
@@ -66,17 +67,10 @@ func (g *GormGenCommand) genModel() error {
 		models = g.generator.GenerateAllTable(fieldOpts...)
 	}
 	g.generator.ApplyBasic(models...)
-	if err := g.genModelMethod(); err != nil {
-		return err
-	}
 	g.generator.Execute()
-	return nil
 }
 
-func (g *GormGenCommand) genModelMethod() error {
-	if g.methods == nil {
-		return nil
-	}
+func (g *GormGenCommand) genModelMethod() {
 	for table, methods := range g.methods {
 		if len(methods) == 0 || table == "" {
 			continue
@@ -85,8 +79,6 @@ func (g *GormGenCommand) genModelMethod() error {
 			g.generator.ApplyInterface(method, g.generator.GenerateModel(table))
 		}
 	}
-	g.generator.Execute()
-	return nil
 }
 
 func (g *GormGenCommand) Command() *cobra.Command {
@@ -95,10 +87,7 @@ func (g *GormGenCommand) Command() *cobra.Command {
 		Short: "创建model或model对应方法",
 		Long:  `基于gonm的gen的代码生成器，生成数据表model，并生成model对应的方法。`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := g.genModel(); err != nil {
-				fmt.Printf("\033[1;37;41m%s\033[0m\n", err)
-				return
-			}
+			g.genModel()
 			fmt.Printf("\033[1;32;42m%s\033[0m\n", "generated successfully.")
 		},
 	}

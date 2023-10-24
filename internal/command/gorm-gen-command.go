@@ -85,7 +85,7 @@ func (g *GormGenCommand) Command() *cobra.Command {
 	return &cobra.Command{
 		Use:   "gen:model",
 		Short: "创建model或model对应方法",
-		Long:  `基于gonm的gen的代码生成器，生成数据表model，并生成model对应的方法。`,
+		Long:  `基于gorm的gen的代码生成器，生成数据表model，并生成model对应的方法。`,
 		Run: func(cmd *cobra.Command, args []string) {
 			g.genModel()
 			fmt.Printf("\033[1;32;42m%s\033[0m\n", "generated successfully.")

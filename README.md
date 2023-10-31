@@ -147,7 +147,7 @@ func (*CustomRouter) Add(srv *gin.Engine) {
 
 #### 中间件
 
-定义中间件与`gin`框架一样，该估计默认实现了panic异常的中间件，可以查看`internal/server/middleware`文件夹中的`exception.go`文件。
+定义中间件与`gin`框架一样，该骨架默认实现了panic异常的中间件，可以查看`internal/server/middleware`文件夹中的`exception.go`文件。
 
 如果需要定义其他的中间件并加载注册，可以将定义好的中间件通过`server.HttpServer`接口的`SetMiddleware(middlewares ...middleware.Interface)`方法注册加载，
 比如我们实现如下自定义全局中间件`middleware/custom.go`：

@@ -3,6 +3,7 @@ package request
 import (
 	"errors"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -12,6 +13,10 @@ import (
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	chTranslations "github.com/go-playground/validator/v10/translations/zh"
 )
+
+type IValidator interface {
+	Message() validator.ValidationErrorsTranslations
+}
 
 type Request struct {
 	trans ut.Translator
@@ -53,11 +58,24 @@ func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErr
 		return nil
 	}
 	var errs validator.ValidationErrors
-	ok := errors.As(err, &errs)
-	if !ok {
-		errMap := make(validator.ValidationErrorsTranslations)
-		errMap["noValidationErrors"] = err.Error()
-		return errMap
+	messages := make(validator.ValidationErrorsTranslations)
+	if ok := errors.As(err, &errs); !ok {
+		messages["noValidationErrors"] = err.Error()
+		return messages
 	}
-	return errs.Translate(r.trans)
+	for _, fieldError := range err.(validator.ValidationErrors) {
+		field := fmt.Sprintf("%s.%s", fieldError.Field(), fieldError.Tag())
+		d, ok := param.(IValidator)
+		if !ok {
+			messages[fieldError.Field()] = fieldError.Translate(r.trans)
+			continue
+		}
+		if message, exist := d.Message()[field]; exist {
+			messages[fieldError.Field()] = message
+			continue
+		}
+		messages[fieldError.Field()] = fieldError.Error()
+	}
+
+	return messages
 }

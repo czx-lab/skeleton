@@ -30,7 +30,7 @@ var (
 	Event    *event.Event
 	Elastic  *elasticsearch.Elasticsearch
 
-	// 目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
+	// RocketMQ 目前官方RocketMQ Golang SDK一些功能尚未完善，暂时不可用
 	RocketMQ mq.Interface
 )
 

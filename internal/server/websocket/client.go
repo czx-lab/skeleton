@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,7 +40,7 @@ func NewSocketClient(ctx *gin.Context, key string, socket *Socket) *SocketClient
 func (s *SocketClient) readPump() {
 	defer func() {
 		if err := recover(); err != nil {
-			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
+			s.socket.opts.handler.OnError(s.key, fmt.Errorf("%v", err))
 		}
 		s.close()
 	}()
@@ -73,7 +72,7 @@ func (s *SocketClient) writePump() {
 	ticker := time.NewTicker(s.socket.opts.pingPeriod)
 	defer func() {
 		if err := recover(); err != nil {
-			s.socket.opts.handler.OnError(s.key, errors.New(fmt.Sprintf("%v", err)))
+			s.socket.opts.handler.OnError(s.key, fmt.Errorf("%v", err))
 		}
 		s.close()
 	}()

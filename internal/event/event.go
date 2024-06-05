@@ -22,12 +22,12 @@ type Interface interface {
 var smap sync.Map
 
 type Event struct {
-	wg sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
 func New() *Event {
 	return &Event{
-		wg: sync.WaitGroup{},
+		wg: new(sync.WaitGroup),
 	}
 }
 
@@ -88,10 +88,10 @@ func (e *Event) exec(handlers []Interface, event EventInterface, async bool) err
 	for _, handler := range handlers {
 		e.wg.Add(1)
 		execFunc := handler
-		go func(wg *sync.WaitGroup) {
+		go func() {
 			defer e.wg.Done()
 			execFunc.Process(param)
-		}(&e.wg)
+		}()
 	}
 	e.wg.Wait()
 	return nil

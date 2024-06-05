@@ -111,7 +111,7 @@ func (s *Socket) WriteMessage(message Message) error {
 	} else {
 		for _, key := range message.Subkeys {
 			client, ok := s.clients[key]
-			if !ok && client.state == OffLineState {
+			if !ok || client.state == OffLineState {
 				return errors.New("Connect does not exist")
 			}
 			client.send <- message.Data

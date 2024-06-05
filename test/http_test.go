@@ -2,10 +2,9 @@ package test
 
 import (
 	"fmt"
-	"testing"
-
 	"skeleton/internal/server"
 	"skeleton/router"
+	"testing"
 
 	"github.com/gin-gonic/gin"
 )

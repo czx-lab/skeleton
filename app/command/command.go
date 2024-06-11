@@ -16,18 +16,17 @@ type Command struct {
 
 var _ (AppCommand.CommandInterface) = (*Command)(nil)
 
-func NewCommand(root *cobra.Command) *Command {
+var NewCommand = func(root *cobra.Command) AppCommand.CommandInterface {
 	return &Command{
 		root: root,
 	}
 }
 
-func (c *Command) GlobalFlags() {
-	c.root.PersistentFlags().StringP("foo", "f", "", "foo flag.")
-}
+func (c *Command) GlobalFlags() {}
 
 func (c *Command) RegisterCmds() []AppCommand.Interface {
 	return []AppCommand.Interface{
+		AppCommand.NewServerCommand(),
 		&FooCommand{},
 		newGenCommand(),
 	}

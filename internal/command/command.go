@@ -23,7 +23,7 @@ type CommandInterface interface {
 	RegisterCmds() []Interface
 }
 
-func New() *Command {
+func New(cmdFunc func(*cobra.Command) CommandInterface) *Command {
 	root := &Command{
 		root: &cobra.Command{
 			Use:   "command",
@@ -35,15 +35,15 @@ For the definition of flag, please refer to the official library documentation.`
 			},
 		},
 	}
-	return root
+	return root.AddCommand(cmdFunc)
 }
 
 func (c *Command) Root() *cobra.Command {
 	return c.root
 }
 
-func (c *Command) AddCommand(cmd CommandInterface) *Command {
-	cmd.GlobalFlags()
+func (c *Command) AddCommand(cmdFunc func(*cobra.Command) CommandInterface) *Command {
+	cmd := cmdFunc(c.root)
 	commands := cmd.RegisterCmds()
 	var cobras []*cobra.Command
 	for _, command := range commands {
@@ -56,7 +56,10 @@ func (c *Command) AddCommand(cmd CommandInterface) *Command {
 }
 
 func (c *Command) Execute() {
-	_ = c.root.Execute()
+	if err := c.root.Execute(); err != nil {
+		fmt.Printf("Command initialisation or execution failed with an error: %s\n", err)
+		os.Exit(1)
+	}
 }
 
 func ExecuteCommand(name string, subName string, args ...string) (string, error) {

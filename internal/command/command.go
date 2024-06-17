@@ -1,10 +1,10 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"skeleton/internal/variable"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ func New(cmdFunc func(*cobra.Command) CommandInterface) *Command {
 			Long: `this command line is an encapsulation of the github.com/spf13/cobra library. 
 For the definition of flag, please refer to the official library documentation.`,
 			Run: func(cmd *cobra.Command, args []string) {
-				Error(cmd, args, errors.New("unrecognized command"))
+				httpStart(variable.Config.GetString("HttpServer.Port"), variable.Config.GetString("HttpServer.Mode"))
 			},
 		},
 	}

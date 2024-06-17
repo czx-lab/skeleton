@@ -17,9 +17,17 @@ type ServerCommand struct {
 }
 
 func NewServerCommand() *ServerCommand {
+	port := variable.Config.GetString("HttpServer.Port")
+	mode := variable.Config.GetString("HttpServer.Mode")
+	if len(port) == 0 {
+		port = ":8080"
+	}
+	if len(mode) == 0 {
+		mode = gin.DebugMode
+	}
 	return &ServerCommand{
-		Port: ":8080",
-		Mode: gin.DebugMode,
+		Port: port,
+		Mode: mode,
 	}
 }
 
@@ -56,15 +64,19 @@ func (s *ServerCommand) Command() *cobra.Command {
 			if len(mode) > 0 {
 				s.Mode = mode
 			}
-			http := server.New(
-				server.WithPort(s.Port),
-				server.WithMode(s.Mode),
-				server.WithLogger(variable.Log),
-			)
-			fmt.Printf("Starting server at %s, Service model [%s]...\n", s.Port, s.Mode)
-			http.SetRouters(router.New(http)).Run()
+			httpStart(s.Port, s.Mode)
 		},
 	}
+}
+
+func httpStart(port, mode string) {
+	http := server.New(
+		server.WithPort(port),
+		server.WithMode(mode),
+		server.WithLogger(variable.Log),
+	)
+	fmt.Printf("Starting server at %s, Service model [%s]...\n", port, mode)
+	http.SetRouters(router.New(http)).Run()
 }
 
 // Flags implements Interface.

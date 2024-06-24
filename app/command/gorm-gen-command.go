@@ -1,15 +1,17 @@
 package command
 
 import (
-	"skeleton/app/extend"
 	AppCommand "skeleton/internal/command"
 	"skeleton/internal/variable"
+
+	IDao "skeleton/app/interface/dao"
 
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
 
 var (
+	// https://gorm.io/gen/dao.html#gen-Config
 	conf = gen.Config{
 		OutPath:           "./app/dao",
 		OutFile:           "",
@@ -31,16 +33,16 @@ var (
 	// Annotation Syntax
 	methods = map[string][]any{
 		"user": {
-			func(extend.Method) {},
-			func(extend.UserMethod) {},
+			func(IDao.Method) {},
+			func(IDao.UserMethod) {},
 		},
 	}
 
 	// 字段类型转换-全局
-	converts = map[string]func(detailType gorm.ColumnType) (dataType string){
-		"tinyint":   func(detailType gorm.ColumnType) (dataType string) { return "int8" },
-		"timestamp": func(detailType gorm.ColumnType) (dataType string) { return "extend.LocalTime" },
-		"decimal":   func(detailType gorm.ColumnType) (dataType string) { return "extend.Decimal" },
+	converts = map[string]func(columnType gorm.ColumnType) (dataType string){
+		"tinyint":   func(columnType gorm.ColumnType) (dataType string) { return "int8" },
+		"timestamp": func(columnType gorm.ColumnType) (dataType string) { return "types.ModelFieldTime" },
+		"decimal":   func(columnType gorm.ColumnType) (dataType string) { return "types.Decimal" },
 	}
 )
 
@@ -49,7 +51,7 @@ type GormGenCommand struct {
 	tables       []string
 	ignoreFileds []string
 	methods      map[string][]any
-	converts     map[string]func(detailType gorm.ColumnType) (dataType string)
+	converts     map[string]func(columnType gorm.ColumnType) (dataType string)
 }
 
 func NewGormGenCommand() *GormGenCommand {

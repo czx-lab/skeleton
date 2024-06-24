@@ -4,7 +4,9 @@
 
 package model
 
-import "skeleton/app/extend"
+import (
+	"skeleton/app/types"
+)
 
 const TableNameUser = "user"
 
@@ -19,8 +21,8 @@ type User struct {
 	Age       int32            `gorm:"column:age;type:int(10) unsigned;not null" json:"age"`
 	Intro     string           `gorm:"column:intro;type:varchar(255);not null;comment:描述" json:"intro"`                                    // 描述
 	Sex       int8             `gorm:"column:sex;type:tinyint(2) unsigned;not null;comment:性别【0：男：1女2：保密】" json:"sex"`                     // 性别【0：男：1女2：保密】
-	CreatedAt extend.LocalTime `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt extend.LocalTime `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:修改时间" json:"updated_at"` // 修改时间
+	CreatedAt types.ModelFieldTime `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
+	UpdatedAt types.ModelFieldTime `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:修改时间" json:"updated_at"` // 修改时间
 	Address   string           `gorm:"column:address;type:varchar(50)" json:"address"`
 }
 

@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"log"
 	"skeleton/internal/utils"
 	"strings"
 
@@ -19,6 +20,11 @@ type GormGenCommand struct {
 	methods      map[string][]any
 	dataMap      map[string]func(detailType gorm.ColumnType) (dataType string)
 }
+
+const (
+	Model  = "model"
+	Method = "method"
+)
 
 type OptionFunc func(*GormGenCommand)
 
@@ -42,7 +48,6 @@ func NewGenCommand(opts ...OptionInterface) Interface {
 }
 
 func (g *GormGenCommand) genModel() {
-	g.genModelMethod()
 	if g.dataMap != nil {
 		g.generator.WithDataTypeMap(g.dataMap)
 	}
@@ -72,7 +77,7 @@ func (g *GormGenCommand) genModel() {
 
 func (g *GormGenCommand) genModelMethod() {
 	for table, methods := range g.methods {
-		if len(methods) == 0 || table == "" {
+		if len(methods) == 0 {
 			continue
 		}
 		for _, method := range methods {
@@ -83,18 +88,32 @@ func (g *GormGenCommand) genModelMethod() {
 
 func (g *GormGenCommand) Command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "gen:model",
+		Use:   "gorm:gen",
 		Short: "创建model或model对应方法",
 		Long: `Instructions:
-  基于gorm的gen的代码生成器，生成数据表model，并生成model对应的方法。`,
+  基于gorm的gen的代码生成器，生成数据表model，或生成model对应的方法。`,
 		Run: func(cmd *cobra.Command, args []string) {
-			g.genModel()
+			create, err := cmd.Flags().GetString("create")
+			if err != nil {
+				log.Fatalf("err: %s\n", err)
+			}
+			switch create {
+			case Method:
+				g.genModelMethod()
+			default:
+				g.genModel()
+			}
 			fmt.Printf("\033[1;32;42m%s\033[0m\n", "generated successfully.")
 		},
 	}
 }
 
-func (g *GormGenCommand) Flags(root *cobra.Command) {}
+func (g *GormGenCommand) Flags(root *cobra.Command) {
+	root.Flags().StringP("create", "c", "model", `生成参数：
+	- model[default]
+	- method
+`)
+}
 
 func WithDB(db *gorm.DB) OptionFunc {
 	return func(ggc *GormGenCommand) {
@@ -131,3 +150,5 @@ func WithConfig(conf gen.Config) OptionFunc {
 		ggc.config = conf
 	}
 }
+
+var _ (Interface) = (*GormGenCommand)(nil)

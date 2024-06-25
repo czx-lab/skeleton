@@ -3,6 +3,9 @@ package request
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"skeleton/internal/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -12,6 +15,11 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	chTranslations "github.com/go-playground/validator/v10/translations/zh"
+)
+
+const (
+	headerFieldName = "Header"
+	bodyFieldName   = "Body"
 )
 
 type IValidator interface {
@@ -52,11 +60,45 @@ func (r *Request) transInit(local string) (err error) {
 	return
 }
 
-func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
-	err := ctx.ShouldBind(param)
-	if err == nil {
-		return nil
+func paramReflectValue(param any) reflect.Value {
+	paramValue := reflect.ValueOf(param)
+	if paramValue.Kind() == reflect.Ptr {
+		paramValue = paramValue.Elem()
 	}
+	return paramValue
+}
+
+func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
+	var err error
+	checkHeader := utils.CheckFieldExistence(param, headerFieldName)
+	if checkHeader {
+		headerVal := paramReflectValue(param).FieldByName(headerFieldName)
+		if headerVal.CanInterface() {
+			if err = ctx.ShouldBindHeader(headerVal.Addr().Interface()); err != nil {
+				return r.valiError(headerFieldName, param, err)
+			}
+		}
+	}
+	field := bodyFieldName
+	checkBody := utils.CheckFieldExistence(param, bodyFieldName)
+	if checkBody {
+		bodyVal := paramReflectValue(param).FieldByName(bodyFieldName)
+		if bodyVal.CanInterface() {
+			if err = ctx.ShouldBind(bodyVal.Addr().Interface()); err == nil {
+				return nil
+			}
+		}
+	}
+	if !checkBody && !checkHeader {
+		field = ""
+		if err = ctx.ShouldBind(param); err == nil {
+			return nil
+		}
+	}
+	return r.valiError(field, param, err)
+}
+
+func (r *Request) valiError(field string, param any, err error) validator.ValidationErrorsTranslations {
 	var errs validator.ValidationErrors
 	messages := make(validator.ValidationErrorsTranslations)
 	if ok := errors.As(err, &errs); !ok {
@@ -64,13 +106,17 @@ func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErr
 		return messages
 	}
 	for _, fieldError := range err.(validator.ValidationErrors) {
-		field := fmt.Sprintf("%s.%s", fieldError.Field(), fieldError.Tag())
+		stringBuilder := strings.Builder{}
+		if len(field) > 0 {
+			stringBuilder.WriteString(fmt.Sprintf("%s.", field))
+		}
+		stringBuilder.WriteString(fmt.Sprintf("%s.%s", fieldError.Field(), fieldError.Tag()))
 		d, ok := param.(IValidator)
 		if !ok {
 			messages[fieldError.Field()] = fieldError.Translate(r.trans)
 			continue
 		}
-		if message, exist := d.Message()[field]; exist {
+		if message, exist := d.Message()[stringBuilder.String()]; exist {
 			messages[fieldError.Field()] = message
 			continue
 		}

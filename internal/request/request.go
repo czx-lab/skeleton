@@ -95,7 +95,10 @@ func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErr
 			return nil
 		}
 	}
-	return r.valiError(field, param, err)
+	if err != nil {
+		return r.valiError(field, param, err)
+	}
+	return nil
 }
 
 func (r *Request) valiError(field string, param any, err error) validator.ValidationErrorsTranslations {

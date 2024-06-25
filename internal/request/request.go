@@ -20,6 +20,7 @@ import (
 const (
 	headerFieldName = "Header"
 	bodyFieldName   = "Body"
+	uriFieldName    = "Uri"
 )
 
 type IValidator interface {
@@ -71,25 +72,31 @@ func paramReflectValue(param any) reflect.Value {
 func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
 	var err error
 	checkHeader := utils.CheckFieldExistence(param, headerFieldName)
-	if checkHeader {
-		headerVal := paramReflectValue(param).FieldByName(headerFieldName)
-		if headerVal.CanInterface() {
-			if err = ctx.ShouldBindHeader(headerVal.Addr().Interface()); err != nil {
-				return r.valiError(headerFieldName, param, err)
-			}
-		}
+	if !checkHeader {
+		goto CheckUriBlock
 	}
+	if err := r.valiHeader(ctx, param); err != nil {
+		return err
+	}
+
+CheckUriBlock:
+	checkUri := utils.CheckFieldExistence(param, uriFieldName)
+	if !checkUri {
+		goto CheckBodyBlock
+	}
+	if err := r.valiUri(ctx, param); err != nil {
+		return err
+	}
+
+CheckBodyBlock:
 	field := bodyFieldName
 	checkBody := utils.CheckFieldExistence(param, bodyFieldName)
 	if checkBody {
-		bodyVal := paramReflectValue(param).FieldByName(bodyFieldName)
-		if bodyVal.CanInterface() {
-			if err = ctx.ShouldBind(bodyVal.Addr().Interface()); err == nil {
-				return nil
-			}
+		if err := r.valiBody(ctx, param); err != nil {
+			return err
 		}
 	}
-	if !checkBody && !checkHeader {
+	if !checkBody && !checkHeader && !checkUri {
 		field = ""
 		if err = ctx.ShouldBind(param); err == nil {
 			return nil
@@ -97,6 +104,36 @@ func (r *Request) Validator(ctx *gin.Context, param any) validator.ValidationErr
 	}
 	if err != nil {
 		return r.valiError(field, param, err)
+	}
+	return nil
+}
+
+func (r *Request) valiBody(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
+	bodyVal := paramReflectValue(param).FieldByName(bodyFieldName)
+	if bodyVal.CanInterface() {
+		if err := ctx.ShouldBind(bodyVal.Addr().Interface()); err == nil {
+			return nil
+		}
+	}
+	return nil
+}
+
+func (r *Request) valiHeader(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
+	headerVal := paramReflectValue(param).FieldByName(headerFieldName)
+	if headerVal.CanInterface() {
+		if err := ctx.ShouldBindHeader(headerVal.Addr().Interface()); err != nil {
+			return r.valiError(headerFieldName, param, err)
+		}
+	}
+	return nil
+}
+
+func (r *Request) valiUri(ctx *gin.Context, param any) validator.ValidationErrorsTranslations {
+	uriVal := paramReflectValue(param).FieldByName(uriFieldName)
+	if uriVal.CanInterface() {
+		if err := ctx.ShouldBindUri(uriVal.Addr().Interface()); err != nil {
+			return r.valiError(headerFieldName, param, err)
+		}
 	}
 	return nil
 }

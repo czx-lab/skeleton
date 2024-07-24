@@ -2,6 +2,14 @@ HttpServer:
   Port: ":8899"
   Mode: "debug"
 
+Log:
+  ServiceName: "WallEvoApi"
+  Path: ""
+  Mod: "console"
+  Encoding: "plain"
+  Level: "debug"
+  Color: true
+
 Websocket:
   WriteReadBufferSize: 2048
   HeartbeatFailMaxTimes: 4

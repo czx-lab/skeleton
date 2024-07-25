@@ -20,12 +20,18 @@ window:
 mac:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -race -o ${BINARY_NAME} -ldflags '-s -w' cmd/main.go
 
-linux:	
+linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -race -o ${BINARY_NAME} -ldflags '-s -w' cmd/main.go
 
 run:
 	./${BINARY_NAME}
 
+debug:
+	go run ./cmd/main.go
+
+gorm:
+	go run ./cmd/main.go gorm:gen -c model
+
 clean:
-    go clean
-    rm ${BINARY_NAME}
+	go clean
+	rm ${BINARY_NAME}

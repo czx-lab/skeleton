@@ -1,3 +1,5 @@
+# the program fails to load the WakeByAddressSingle, WakeByAddressAll and WaitOnAddress symbols from kernel32.dll. 
+# View Details: https://github.com/golang/go/issues/61058
 BINARY_NAME=main
 PLATFORM=Windows
 
@@ -15,7 +17,10 @@ endif
 all: ${PLATFORM} run
 
 window:
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -race -o ${BINARY_NAME} -ldflags '-s -w' cmd/main.go
+	set CGO_ENABLED=0
+	set GOOS=windows
+	set GOARCH=amd64 
+	go build -race -o ${BINARY_NAME} -ldflags "-s -w" cmd/main.go
 
 mac:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -race -o ${BINARY_NAME} -ldflags '-s -w' cmd/main.go
@@ -24,7 +29,7 @@ linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -race -o ${BINARY_NAME} -ldflags '-s -w' cmd/main.go
 
 run:
-	./${BINARY_NAME}
+	./${BINARY_NAME} server:http -m release
 
 debug:
 	go run ./cmd/main.go

@@ -2,6 +2,8 @@ package bootstrap
 
 import (
 	"log"
+
+	conf "skeleton/config"
 	AppEvent "skeleton/internal/event"
 	"skeleton/internal/logx"
 	"time"
@@ -22,9 +24,11 @@ func init() {
 	var err error
 	if variable.Config, err = config.New(driver.New(), config.Options{
 		BasePath: variable.BasePath,
+		Conf:     &conf.Config{},
 	}); err != nil {
 		log.Fatal(consts.ErrorInitConfig)
 	}
+	variable.AppConf = variable.Config.AppConf().(*conf.Config)
 	logxConf := variable.Config.Get("Log").(map[string]any)
 	variable.Log = logx.NewLogx(
 		logx.WithServiceName(logxConf["servicename"].(string)),

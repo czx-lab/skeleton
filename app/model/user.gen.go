@@ -4,26 +4,25 @@
 
 package model
 
-import (
-	"skeleton/app/types"
-)
+import "skeleton/app/types"
 
 const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID        int32            `gorm:"column:id;type:int(11) unsigned;primaryKey;autoIncrement:true" json:"id"`
-	Nickname  string           `gorm:"column:nickname;type:varchar(255);not null;comment:昵称" json:"nickname"` // 昵称
-	Name      string           `gorm:"column:name;type:varchar(255);not null" json:"name"`
-	Avatar    string           `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"` // 头像
-	Mobile    string           `gorm:"column:mobile;type:char(11);not null;comment:手机号" json:"mobile"`    // 手机号
-	Role      string           `gorm:"column:role;type:char(11);not null" json:"role"`
-	Age       int32            `gorm:"column:age;type:int(10) unsigned;not null" json:"age"`
-	Intro     string           `gorm:"column:intro;type:varchar(255);not null;comment:描述" json:"intro"`                                    // 描述
-	Sex       int8             `gorm:"column:sex;type:tinyint(2) unsigned;not null;comment:性别【0：男：1女2：保密】" json:"sex"`                     // 性别【0：男：1女2：保密】
-	CreatedAt types.ModelFieldTime `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt types.ModelFieldTime `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:修改时间" json:"updated_at"` // 修改时间
-	Address   string           `gorm:"column:address;type:varchar(50)" json:"address"`
+	ID        int32                `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	DmmID     string               `gorm:"column:dmm_id;type:char(40);not null" json:"dmm_id"`
+	Mobile    string               `gorm:"column:mobile;type:char(11);not null" json:"mobile"`
+	Nickname  string               `gorm:"column:nickname;type:varchar(50);not null" json:"nickname"`
+	Avatar    string               `gorm:"column:avatar;type:varchar(255);not null" json:"avatar"`
+	Sex       int8                 `gorm:"column:sex;type:tinyint unsigned;not null;default:1" json:"sex"`
+	Sign      string               `gorm:"column:sign;type:varchar(255);not null" json:"sign"`
+	Salt      string               `gorm:"column:salt;type:char(6);not null" json:"salt"`
+	TokenSalt string               `gorm:"column:token_salt;type:char(12);not null" json:"token_salt"`
+	Password  string               `gorm:"column:password;type:varchar(50);not null" json:"password"`
+	Status    int8                 `gorm:"column:status;type:tinyint unsigned;not null;default:1" json:"status"`
+	CreatedAt types.ModelFieldTime `gorm:"column:created_at;type:timestamp;not null;default:now()" json:"created_at"`
+	UpdatedAt types.ModelFieldTime `gorm:"column:updated_at;type:timestamp;not null;default:now()" json:"-"`
 }
 
 // TableName User's table name

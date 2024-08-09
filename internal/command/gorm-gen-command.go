@@ -73,17 +73,34 @@ func (g *GormGenCommand) genModel() {
 	}
 	g.generator.ApplyBasic(models...)
 	g.generator.Execute()
+	g.genModelMethod()
 }
 
 func (g *GormGenCommand) genModelMethod() {
+	modelFunc := func(table string) any {
+		if len(g.generator.Data) == 0 {
+			return nil
+		}
+		for _, v := range g.generator.Data {
+			if v.TableName == table {
+				return v.QueryStructMeta
+			}
+		}
+		return nil
+	}
 	for table, methods := range g.methods {
 		if len(methods) == 0 {
 			continue
 		}
+		model := modelFunc(table)
 		for _, method := range methods {
-			g.generator.ApplyInterface(method, g.generator.GenerateModel(table))
+			if model == nil {
+				model = g.generator.GenerateModel(table)
+			}
+			g.generator.ApplyInterface(method, model)
 		}
 	}
+	g.generator.Execute()
 }
 
 func (g *GormGenCommand) Command() *cobra.Command {

@@ -1,17 +1,22 @@
 package config
 
 import (
-	"github.com/spf13/cast"
 	"skeleton/internal/constants/config"
 	"skeleton/internal/container"
 	"sync"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 type Config struct {
 	Driver config.DriverInterface
 	cache  config.CacheInterface
 	mu     *sync.Mutex
+}
+
+type IAppConfig interface {
+	MarshalJSON() ([]byte, error)
 }
 
 var _ config.ConfigInterface = (*Config)(nil)
@@ -33,6 +38,8 @@ type Options struct {
 	// 配置缓存器，可自定义缓存器，比如使用redis
 	// 只需要实现CacheInterface接口即可
 	Cache config.CacheInterface
+
+	Conf IAppConfig
 }
 
 // New config
@@ -59,6 +66,13 @@ func New(config config.DriverInterface, option Options) (provider *Config, err e
 		cache:  option.Cache,
 		mu:     new(sync.Mutex),
 	}, nil
+}
+
+func (c *Config) AppConf() IAppConfig {
+	if conf, ok := c.Driver.(interface{ Conf() any }); ok {
+		return conf.Conf().(IAppConfig)
+	}
+	return nil
 }
 
 func (c *Config) Cache(key string, value any) bool {

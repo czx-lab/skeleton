@@ -3,7 +3,7 @@ HttpServer:
   Mode: "debug"
 
 Log:
-  ServiceName: "WallEvoApi"
+  ServiceName: "skeleton"
   Path: ""
   Mod: "console"
   Encoding: "plain"

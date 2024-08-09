@@ -30,17 +30,18 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
 	_user.ID = field.NewInt32(tableName, "id")
-	_user.Nickname = field.NewString(tableName, "nickname")
-	_user.Name = field.NewString(tableName, "name")
-	_user.Avatar = field.NewString(tableName, "avatar")
+	_user.DmmID = field.NewString(tableName, "dmm_id")
 	_user.Mobile = field.NewString(tableName, "mobile")
-	_user.Role = field.NewString(tableName, "role")
-	_user.Age = field.NewInt32(tableName, "age")
-	_user.Intro = field.NewString(tableName, "intro")
+	_user.Nickname = field.NewString(tableName, "nickname")
+	_user.Avatar = field.NewString(tableName, "avatar")
 	_user.Sex = field.NewInt8(tableName, "sex")
+	_user.Sign = field.NewString(tableName, "sign")
+	_user.Salt = field.NewString(tableName, "salt")
+	_user.TokenSalt = field.NewString(tableName, "token_salt")
+	_user.Password = field.NewString(tableName, "password")
+	_user.Status = field.NewInt8(tableName, "status")
 	_user.CreatedAt = field.NewField(tableName, "created_at")
 	_user.UpdatedAt = field.NewField(tableName, "updated_at")
-	_user.Address = field.NewString(tableName, "address")
 
 	_user.fillFieldMap()
 
@@ -52,17 +53,18 @@ type user struct {
 
 	ALL       field.Asterisk
 	ID        field.Int32
-	Nickname  field.String // 昵称
-	Name      field.String
-	Avatar    field.String // 头像
-	Mobile    field.String // 手机号
-	Role      field.String
-	Age       field.Int32
-	Intro     field.String // 描述
-	Sex       field.Int8   // 性别【0：男：1女2：保密】
-	CreatedAt field.Field  // 创建时间
-	UpdatedAt field.Field  // 修改时间
-	Address   field.String
+	DmmID     field.String
+	Mobile    field.String
+	Nickname  field.String
+	Avatar    field.String
+	Sex       field.Int8
+	Sign      field.String
+	Salt      field.String
+	TokenSalt field.String
+	Password  field.String
+	Status    field.Int8
+	CreatedAt field.Field
+	UpdatedAt field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -80,17 +82,18 @@ func (u user) As(alias string) *user {
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewInt32(table, "id")
-	u.Nickname = field.NewString(table, "nickname")
-	u.Name = field.NewString(table, "name")
-	u.Avatar = field.NewString(table, "avatar")
+	u.DmmID = field.NewString(table, "dmm_id")
 	u.Mobile = field.NewString(table, "mobile")
-	u.Role = field.NewString(table, "role")
-	u.Age = field.NewInt32(table, "age")
-	u.Intro = field.NewString(table, "intro")
+	u.Nickname = field.NewString(table, "nickname")
+	u.Avatar = field.NewString(table, "avatar")
 	u.Sex = field.NewInt8(table, "sex")
+	u.Sign = field.NewString(table, "sign")
+	u.Salt = field.NewString(table, "salt")
+	u.TokenSalt = field.NewString(table, "token_salt")
+	u.Password = field.NewString(table, "password")
+	u.Status = field.NewInt8(table, "status")
 	u.CreatedAt = field.NewField(table, "created_at")
 	u.UpdatedAt = field.NewField(table, "updated_at")
-	u.Address = field.NewString(table, "address")
 
 	u.fillFieldMap()
 
@@ -107,19 +110,20 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 12)
+	u.fieldMap = make(map[string]field.Expr, 13)
 	u.fieldMap["id"] = u.ID
-	u.fieldMap["nickname"] = u.Nickname
-	u.fieldMap["name"] = u.Name
-	u.fieldMap["avatar"] = u.Avatar
+	u.fieldMap["dmm_id"] = u.DmmID
 	u.fieldMap["mobile"] = u.Mobile
-	u.fieldMap["role"] = u.Role
-	u.fieldMap["age"] = u.Age
-	u.fieldMap["intro"] = u.Intro
+	u.fieldMap["nickname"] = u.Nickname
+	u.fieldMap["avatar"] = u.Avatar
 	u.fieldMap["sex"] = u.Sex
+	u.fieldMap["sign"] = u.Sign
+	u.fieldMap["salt"] = u.Salt
+	u.fieldMap["token_salt"] = u.TokenSalt
+	u.fieldMap["password"] = u.Password
+	u.fieldMap["status"] = u.Status
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
-	u.fieldMap["address"] = u.Address
 }
 
 func (u user) clone(db *gorm.DB) user {

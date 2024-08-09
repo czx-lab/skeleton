@@ -72,7 +72,6 @@ func (g *GormGenCommand) genModel() {
 		models = g.generator.GenerateAllTable(fieldOpts...)
 	}
 	g.generator.ApplyBasic(models...)
-	g.generator.Execute()
 	g.genModelMethod()
 }
 

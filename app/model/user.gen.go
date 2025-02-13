@@ -6,26 +6,20 @@ package model
 
 import "skeleton/app/types"
 
-const TableNameUser = "user"
+const TableNameUserModel = "users"
 
-// User mapped from table <user>
-type User struct {
-	ID        int32                `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	DmmID     string               `gorm:"column:dmm_id;type:char(40);not null" json:"dmm_id"`
-	Mobile    string               `gorm:"column:mobile;type:char(11);not null" json:"mobile"`
-	Nickname  string               `gorm:"column:nickname;type:varchar(50);not null" json:"nickname"`
-	Avatar    string               `gorm:"column:avatar;type:varchar(255);not null" json:"avatar"`
-	Sex       int8                 `gorm:"column:sex;type:tinyint unsigned;not null;default:1" json:"sex"`
-	Sign      string               `gorm:"column:sign;type:varchar(255);not null" json:"sign"`
-	Salt      string               `gorm:"column:salt;type:char(6);not null" json:"salt"`
-	TokenSalt string               `gorm:"column:token_salt;type:char(12);not null" json:"token_salt"`
-	Password  string               `gorm:"column:password;type:varchar(50);not null" json:"password"`
-	Status    int8                 `gorm:"column:status;type:tinyint unsigned;not null;default:1" json:"status"`
-	CreatedAt types.ModelFieldTime `gorm:"column:created_at;type:timestamp;not null;default:now()" json:"created_at"`
-	UpdatedAt types.ModelFieldTime `gorm:"column:updated_at;type:timestamp;not null;default:now()" json:"-"`
+// UserModel mapped from table <users>
+type UserModel struct {
+	ID         int32                `gorm:"column:id;type:int;primaryKey;autoIncrement:true" json:"id"`
+	Name       string               `gorm:"column:name;type:varchar(50)" json:"name"`
+	Age        int32                `gorm:"column:age;type:int" json:"age"`
+	Address    string               `gorm:"column:address;type:varchar(50)" json:"address"`
+	Role       string               `gorm:"column:role;type:varchar(50)" json:"role"`
+	Rule       string               `gorm:"column:rule;type:varchar(50)" json:"rule"`
+	UpdateTime types.ModelFieldTime `gorm:"column:update_time;type:timestamp;default:now()" json:"update_time"`
 }
 
-// TableName User's table name
-func (*User) TableName() string {
-	return TableNameUser
+// TableName UserModel's table name
+func (*UserModel) TableName() string {
+	return TableNameUserModel
 }

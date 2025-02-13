@@ -27,8 +27,8 @@ Database:
     MaxOpenConn: 2
     ConnMaxIdleTime: 12
     Reade:
-      - "root:root@tcp(127.0.0.1:3006)/test?charset=utf8mb4&loc=Local&parseTime=True"
-    Write: "root:root@tcp(127.0.0.1:3006)/test?charset=utf8mb4&loc=Local&parseTime=True"
+      - "root:admin@tcp(127.0.0.1:3306)/demo?charset=utf8mb4&loc=Local&parseTime=True"
+    Write: "root:admin@tcp(127.0.0.1:3306)/demo?charset=utf8mb4&loc=Local&parseTime=True"
   Mongo:
     Enable: false
     Uri:

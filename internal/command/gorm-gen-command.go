@@ -11,12 +11,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type Rename struct {
+	FileName  string
+	ModelName string
+}
+
 type GormGenCommand struct {
 	generator    *gen.Generator
 	db           *gorm.DB
 	config       gen.Config
 	tables       []string
 	ignoreFileds []string
+	renames      map[string]Rename
 	methods      map[string][]any
 	dataMap      map[string]func(detailType gorm.ColumnType) (dataType string)
 }
@@ -63,13 +69,27 @@ func (g *GormGenCommand) genModel() {
 	})
 	fieldOpts := []gen.ModelOpt{jsonField}
 	models := make([]any, len(g.tables))
-	if len(g.tables) > 0 {
-		for _, table := range g.tables {
-			model := g.generator.GenerateModelAs(table, utils.CaseToCamel(table), fieldOpts...)
-			models = append(models, model)
+	if len(g.tables) == 0 {
+		var err error
+		g.tables, err = g.db.Migrator().GetTables()
+		if err != nil {
+			return
 		}
-	} else {
-		models = g.generator.GenerateAllTable(fieldOpts...)
+	}
+	for _, table := range g.tables {
+		modelName := utils.CaseToCamel(table)
+		rename := table
+		if _name, ok := g.renames[table]; ok {
+			if len(_name.ModelName) > 0 {
+				modelName = utils.CaseToCamel(_name.ModelName)
+			}
+			if len(_name.FileName) > 0 {
+				rename = _name.FileName
+			}
+		}
+		model := g.generator.GenerateModelAs(table, modelName, fieldOpts...)
+		model.FileName = rename
+		models = append(models, model)
 	}
 	g.generator.ApplyBasic(models...)
 	g.genModelMethod()
@@ -129,6 +149,12 @@ func (g *GormGenCommand) Flags(root *cobra.Command) {
 	- model[default]
 	- method
 `)
+}
+
+func WithNames(renames map[string]Rename) OptionFunc {
+	return func(ggc *GormGenCommand) {
+		ggc.renames = renames
+	}
 }
 
 func WithDB(db *gorm.DB) OptionFunc {

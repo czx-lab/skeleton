@@ -1,13 +1,14 @@
 package bootstrap
 
 import (
-	"gorm.io/gorm"
-	gormLog "gorm.io/gorm/logger"
 	"skeleton/internal/database"
-	"skeleton/internal/database/db_log"
 	"skeleton/internal/database/driver"
+	dblog "skeleton/internal/database/logger"
 	"skeleton/internal/variable"
 	"time"
+
+	"gorm.io/gorm"
+	gormLog "gorm.io/gorm/logger"
 )
 
 // InitMysql 初始化db实例
@@ -17,18 +18,12 @@ func InitMysql() (*gorm.DB, error) {
 	mysqlMasterDriver := driver.New(driver.WithMysqlDsn(mysqlConfig["write"].(string)))
 	slowThreshold := time.Duration(mysqlConfig["slowthreshold"].(int))
 	logLevel := gormLog.LogLevel(mysqlConfig["loglevel"].(int))
-	dbLog := db_log.New(
-		db_log.SetInfoStrFormat("[info] %s]"),
-		db_log.SetWarnStrFormat("[warn] %s"),
-		db_log.SetErrStrFormat("[error] %s"),
-		db_log.SetTraceStrFormat("[traceStr] %s [%.2fms] [rows:%v] [sql:%s]"),
-		db_log.SetTracWarnStrFormat("[traceWarn] %s %s [%.2fms] [rows:%v] [sql:%s]"),
-		db_log.SetTracErrStrFormat("[traceErr] %s %s [%.2fms] [rows:%v] [sql:%s]"),
-		db_log.SetConfig(gormLog.Config{
+	dbLog := dblog.New(
+		dblog.SetConfig(gormLog.Config{
 			SlowThreshold: slowThreshold * time.Second,
 			LogLevel:      logLevel,
 		}),
-		db_log.SetLogger(variable.Log),
+		dblog.SetLogger(variable.Log),
 	)
 	dbClass, err := database.New(
 		mysqlMasterDriver,

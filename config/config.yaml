@@ -1,6 +1,14 @@
 HttpServer:
-  Port: ":8888"
+  Port: ":8899"
   Mode: "debug"
+
+Log:
+  ServiceName: "skeleton"
+  Path: ""
+  Mod: "console"
+  Encoding: "plain"
+  Level: "debug"
+  Color: true
 
 Websocket:
   WriteReadBufferSize: 2048
@@ -19,14 +27,13 @@ Database:
     MaxOpenConn: 2
     ConnMaxIdleTime: 12
     Reade:
-      - "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
-    Write: "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&loc=Local&parseTime=True"
+      - "root:admin@tcp(127.0.0.1:3306)/demo?charset=utf8mb4&loc=Local&parseTime=True"
+    Write: "root:admin@tcp(127.0.0.1:3306)/demo?charset=utf8mb4&loc=Local&parseTime=True"
   Mongo:
     Enable: false
     Uri:
     MinPoolSize: 10
     MaxPoolSize: 20
-
 
 Redis:
   Disabled: false
@@ -57,15 +64,15 @@ Amqp:
   Addr: "amqp://guest:guest@127.0.0.1:5672/"
 
 Elastic:
-    Enable: false
-    Urls:
-      - "http://127.0.0.1:9200"
-    User: "admin"  
-    Secret: "admin"
-    Sniffer: true
-    Gzip: true
-    MaxIdle: 10
-    # 单位（秒）
-    Healthcheck: 5
-    # 单位（秒）
-    Timeout: 5
+  Enable: false
+  Urls:
+    - "http://127.0.0.1:9200"
+  User: "admin"
+  Secret: "admin"
+  Sniffer: true
+  Gzip: true
+  MaxIdle: 10
+  # 单位（秒）
+  Healthcheck: 5
+  # 单位（秒）
+  Timeout: 5

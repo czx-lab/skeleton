@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"log"
 	"skeleton/internal/utils"
 	"strings"
 
@@ -10,15 +11,26 @@ import (
 	"gorm.io/gorm"
 )
 
+type Rename struct {
+	FileName  string
+	ModelName string
+}
+
 type GormGenCommand struct {
 	generator    *gen.Generator
 	db           *gorm.DB
 	config       gen.Config
 	tables       []string
 	ignoreFileds []string
+	renames      map[string]Rename
 	methods      map[string][]any
 	dataMap      map[string]func(detailType gorm.ColumnType) (dataType string)
 }
+
+const (
+	Model  = "model"
+	Method = "method"
+)
 
 type OptionFunc func(*GormGenCommand)
 
@@ -42,7 +54,6 @@ func NewGenCommand(opts ...OptionInterface) Interface {
 }
 
 func (g *GormGenCommand) genModel() {
-	g.genModelMethod()
 	if g.dataMap != nil {
 		g.generator.WithDataTypeMap(g.dataMap)
 	}
@@ -58,42 +69,93 @@ func (g *GormGenCommand) genModel() {
 	})
 	fieldOpts := []gen.ModelOpt{jsonField}
 	models := make([]any, len(g.tables))
-	if len(g.tables) > 0 {
-		for _, table := range g.tables {
-			model := g.generator.GenerateModelAs(table, utils.CaseToCamel(table), fieldOpts...)
-			models = append(models, model)
+	if len(g.tables) == 0 {
+		var err error
+		g.tables, err = g.db.Migrator().GetTables()
+		if err != nil {
+			return
 		}
-	} else {
-		models = g.generator.GenerateAllTable(fieldOpts...)
+	}
+	for _, table := range g.tables {
+		modelName := utils.CaseToCamel(table)
+		rename := table
+		if _name, ok := g.renames[table]; ok {
+			if len(_name.ModelName) > 0 {
+				modelName = utils.CaseToCamel(_name.ModelName)
+			}
+			if len(_name.FileName) > 0 {
+				rename = _name.FileName
+			}
+		}
+		model := g.generator.GenerateModelAs(table, modelName, fieldOpts...)
+		model.FileName = rename
+		models = append(models, model)
 	}
 	g.generator.ApplyBasic(models...)
-	g.generator.Execute()
+	g.genModelMethod()
 }
 
 func (g *GormGenCommand) genModelMethod() {
+	modelFunc := func(table string) any {
+		if len(g.generator.Data) == 0 {
+			return nil
+		}
+		for _, v := range g.generator.Data {
+			if v.TableName == table {
+				return v.QueryStructMeta
+			}
+		}
+		return nil
+	}
 	for table, methods := range g.methods {
-		if len(methods) == 0 || table == "" {
+		if len(methods) == 0 {
 			continue
 		}
+		model := modelFunc(table)
 		for _, method := range methods {
-			g.generator.ApplyInterface(method, g.generator.GenerateModel(table))
+			if model == nil {
+				model = g.generator.GenerateModel(table)
+			}
+			g.generator.ApplyInterface(method, model)
 		}
 	}
+	g.generator.Execute()
 }
 
 func (g *GormGenCommand) Command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "gen:model",
+		Use:   "gorm:gen",
 		Short: "创建model或model对应方法",
-		Long:  `基于gorm的gen的代码生成器，生成数据表model，并生成model对应的方法。`,
+		Long: `Instructions:
+  基于gorm的gen的代码生成器，生成数据表model，或生成model对应的方法。`,
 		Run: func(cmd *cobra.Command, args []string) {
-			g.genModel()
+			create, err := cmd.Flags().GetString("create")
+			if err != nil {
+				log.Fatalf("err: %s\n", err)
+			}
+			switch create {
+			case Method:
+				g.genModelMethod()
+			default:
+				g.genModel()
+			}
 			fmt.Printf("\033[1;32;42m%s\033[0m\n", "generated successfully.")
 		},
 	}
 }
 
-func (g *GormGenCommand) Flags(root *cobra.Command) {}
+func (g *GormGenCommand) Flags(root *cobra.Command) {
+	root.Flags().StringP("create", "c", "model", `生成参数：
+	- model[default]
+	- method
+`)
+}
+
+func WithNames(renames map[string]Rename) OptionFunc {
+	return func(ggc *GormGenCommand) {
+		ggc.renames = renames
+	}
+}
 
 func WithDB(db *gorm.DB) OptionFunc {
 	return func(ggc *GormGenCommand) {
@@ -130,3 +192,5 @@ func WithConfig(conf gen.Config) OptionFunc {
 		ggc.config = conf
 	}
 }
+
+var _ (Interface) = (*GormGenCommand)(nil)

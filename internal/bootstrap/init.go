@@ -2,7 +2,10 @@ package bootstrap
 
 import (
 	"log"
+
+	conf "skeleton/config"
 	AppEvent "skeleton/internal/event"
+	"skeleton/internal/logx"
 	"time"
 
 	"skeleton/app/amqp"
@@ -11,7 +14,6 @@ import (
 	"skeleton/internal/config"
 	"skeleton/internal/config/driver"
 	"skeleton/internal/crontab"
-	"skeleton/internal/logger"
 	"skeleton/internal/mq"
 	"skeleton/internal/redis"
 	"skeleton/internal/variable"
@@ -22,16 +24,20 @@ func init() {
 	var err error
 	if variable.Config, err = config.New(driver.New(), config.Options{
 		BasePath: variable.BasePath,
+		Conf:     &conf.Config{},
 	}); err != nil {
 		log.Fatal(consts.ErrorInitConfig)
 	}
-	if variable.Log, err = logger.New(
-		logger.WithDebug(true),
-		logger.WithEncode("json"),
-		logger.WithFilename(variable.BasePath+"/storage/logs/system.log"),
-	); err != nil {
-		log.Fatal(consts.ErrorInitLogger)
-	}
+	variable.AppConf = variable.Config.AppConf().(*conf.Config)
+	logxConf := variable.Config.Get("Log").(map[string]any)
+	variable.Log = logx.NewLogx(
+		logx.WithServiceName(logxConf["servicename"].(string)),
+		logx.WithEncoding(logx.Encoding(logxConf["encoding"].(string))),
+		logx.WithLevel(logx.Level[logxConf["level"].(string)]),
+		logx.WithMod(logx.Mod(logxConf["mod"].(string))),
+		logx.WithPath(logxConf["path"].(string)),
+		logx.WithColor(logxConf["color"].(bool)),
+	).Zap()
 	if variable.DB, err = InitMysql(); err != nil {
 		log.Fatal(consts.ErrorInitDb)
 	}

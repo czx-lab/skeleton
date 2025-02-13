@@ -1,11 +1,12 @@
 package driver
 
 import (
-	"github.com/fsnotify/fsnotify"
-	"github.com/spf13/viper"
 	"skeleton/internal/config"
 	constants "skeleton/internal/constants/config"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 )
 
 type ViperConfig struct {
@@ -44,13 +45,13 @@ func (v *ViperConfig) Apply(option config.Options) error {
 		return err
 	}
 	v.viper = viperConfig
-	return nil
+	return v.Bind()
 }
 
 // Listen 监听文件变化
 func (v *ViperConfig) Listen() {
 	v.viper.OnConfigChange(func(in fsnotify.Event) {
-		if time.Now().Sub(lastChangeTime).Seconds() >= 1 {
+		if time.Since(lastChangeTime).Seconds() >= 1 {
 			if in.Op.String() == "WRITE" {
 				// 清除cache内的配置
 				v.option.Cache.FuzzyDelete(v.option.CachePrefix)
@@ -58,6 +59,14 @@ func (v *ViperConfig) Listen() {
 			}
 		}
 	})
+}
+
+func (v *ViperConfig) Bind() error {
+	return v.viper.Unmarshal(&v.option.Conf)
+}
+
+func (v *ViperConfig) Conf() any {
+	return v.option.Conf
 }
 
 func (v *ViperConfig) Get(key string) any {

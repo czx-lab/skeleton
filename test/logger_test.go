@@ -1,8 +1,10 @@
 package test
 
 import (
-	"skeleton/internal/logger"
+	"skeleton/internal/logx"
 	"testing"
+
+	"go.uber.org/zap"
 )
 
 func TestLogger(t *testing.T) {
@@ -11,10 +13,10 @@ func TestLogger(t *testing.T) {
 			t.Errorf("TestConfig filed:%v", err)
 		}
 	}()
-	log, err := logger.New(logger.WithDebug(false), logger.WithEncode("json"))
-	if err != nil {
-		t.Errorf("TestConfig filed:%v", err)
-	} else {
-		log.Info("测试123131")
-	}
+	log := logx.NewLogx(
+		logx.WithLevel(zap.ErrorLevel),
+		logx.WithEncoding(logx.EncodingPlain),
+		logx.WithMod(logx.ModFile),
+	).Zap()
+	log.Error("test")
 }

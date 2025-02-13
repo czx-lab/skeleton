@@ -55,7 +55,11 @@ func (s *SocketClient) readPump() {
 	})
 	for {
 		if mt, data, err := s.conn.ReadMessage(); err != nil {
-			s.socket.opts.handler.OnError(s.key, err)
+			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				s.socket.opts.handler.OnClose(s.key)
+			} else {
+				s.socket.opts.handler.OnError(s.key, err)
+			}
 			break
 		} else {
 			message := Message{

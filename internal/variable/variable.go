@@ -8,6 +8,7 @@ import (
 	"skeleton/internal/mongo"
 	"strings"
 
+	conf "skeleton/config"
 	"skeleton/internal/config"
 	"skeleton/internal/crontab"
 	"skeleton/internal/mq"
@@ -22,6 +23,7 @@ var (
 	BasePath string
 	Log      *zap.Logger
 	Config   *config.Config
+	AppConf  *conf.Config
 	DB       *gorm.DB
 	MongoDB  *mongo.MongoDB
 	Redis    *redis.Client

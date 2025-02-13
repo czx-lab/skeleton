@@ -1,19 +1,11 @@
 package main
 
 import (
+	CustomCommand "skeleton/app/command"
 	_ "skeleton/internal/bootstrap"
-	"skeleton/internal/server"
-	"skeleton/internal/variable"
-	"skeleton/router"
+	"skeleton/internal/command"
 )
 
 func main() {
-	port := variable.Config.GetString("HttpServer.Port")
-	mode := variable.Config.GetString("HttpServer.Mode")
-	http := server.New(
-		server.WithPort(port),
-		server.WithMode(mode),
-		server.WithLogger(variable.Log),
-	)
-	http.SetRouters(router.New(http)).Run()
+	command.New(CustomCommand.NewCommand).Execute()
 }

@@ -7,6 +7,15 @@ import (
 	"testing"
 )
 
+func TestAppConfig(t *testing.T) {
+	defer func() {
+		if err := recover(); err != nil {
+			t.Errorf("TestAppConfig filed:%v", err)
+		}
+	}()
+	t.Logf("appconf %v \n", variable.AppConf)
+}
+
 func TestConfig(t *testing.T) {
 	defer func() {
 		if err := recover(); err != nil {

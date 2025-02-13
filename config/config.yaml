@@ -1,0 +1,26 @@
+HttpConf:
+  Mode: debug
+  Addr: :1889
+  TemplDir: templates
+  Timeout: 5000
+
+MySqlConf:
+  Write: root:root@tcp(127.0.0.1:3006)/test?charset=utf8mb4&loc=Local&parseTime=True
+  Read:
+    - root:root@tcp(127.0.0.1:3006)/test?charset=utf8mb4&loc=Local&parseTime=True
+  MaxIdleConn: 2
+  MaxOpenConn: 2
+  ConnMaxLifetime: 12
+  ConnMaxIdleTime: 3
+
+RedisConf:
+  Pass: xxxxx
+  Addrs:
+    - 127.0.0.1:6379
+  DB: 10
+  Pool:
+    Size: 10
+    ConnMaxIdle: 10
+    ConnMinIdle:
+    MaxLifeTime:
+    MaxIdleTime:
